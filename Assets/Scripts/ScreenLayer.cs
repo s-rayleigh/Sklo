@@ -2,10 +2,8 @@ using System;
 
 namespace Sklo
 {
-    public abstract class ScreenLayer
+    public abstract class ScreenLayer : BaseScreenLayer
     {
-        internal virtual Type ViewType { get; }
-
         internal void NotifyShown() => OnShow();
 
         protected virtual void OnShow()
@@ -13,6 +11,13 @@ namespace Sklo
             
         }
 
+        internal void NotifyTransition() => OnTransition();
+
+        protected virtual void OnTransition()
+        {
+            
+        }
+        
         internal void NotifyHidden() => OnHide();
 
         protected virtual void OnHide()
@@ -25,6 +30,7 @@ namespace Sklo
         where TLayer : ScreenLayer<TLayer, TView>, new()
         where TView : ScreenLayerView<TView, TLayer>
     {
-        protected TView View { get; private set; }
+        internal override Type ViewType => typeof(TView);
+        protected new TView View => (TView)base.View;
     }
 }

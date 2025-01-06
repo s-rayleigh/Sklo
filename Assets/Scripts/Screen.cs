@@ -6,9 +6,9 @@ namespace Sklo
 {
     public abstract class BaseScreen
     {
-        private readonly Dictionary<Type, ScreenLayer> _layers = new();
+        internal readonly Dictionary<Type, BaseScreenLayer> Layers = new();
         
-        public bool Displayed { get; private set; }
+        public bool Displayed { get; protected set; }
         
         public bool Destroyed { get; private set; }
 
@@ -24,8 +24,18 @@ namespace Sklo
         protected abstract void OnCompose(ScreenCompositor compositor);
         
         [return: MaybeNull]
-        protected T GetLayer<T>() where T : ScreenLayer => (T)_layers.GetValueOrDefault(typeof(T));
+        protected T GetLayer<T>() where T : BaseScreenLayer => (T)Layers.GetValueOrDefault(typeof(T));
         
+        public bool SameAs(BaseScreen other) => other.GetType() == GetType();
+    }
+
+    public abstract class BaseScreen<T> : BaseScreen where T : BaseScreenLayer
+    {
+        
+    }
+
+    public abstract class Screen : BaseScreen<ScreenLayer>
+    {
         internal void NotifyShown()
         {
             Displayed = true;
@@ -34,7 +44,6 @@ namespace Sklo
 
         protected virtual void OnShow()
         {
-            
         }
 
         internal void NotifyHidden()
@@ -45,22 +54,6 @@ namespace Sklo
 
         protected virtual void OnHide()
         {
-            
-        }
-    }
-
-    public abstract class Screen : BaseScreen
-    {
-        
-    }
-
-    public abstract class ParametricScreen<T> : BaseScreen where T : unmanaged
-    {
-        protected T Parameter { get; private set; }
-        
-        internal void SetParameter(T parameter)
-        {
-            Parameter = parameter;
         }
     }
 }

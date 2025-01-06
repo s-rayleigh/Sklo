@@ -1,36 +1,12 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Sklo
 {
     [DisallowMultipleComponent]
-    public class ScreenManager : MonoBehaviour
+    public class ScreenManager : BaseScreenManager
     {
-        [SerializeField]
-        private ScreenLayerView[] _screenLayers;
-
-        private LayerManager _layerManager;
-        private Stack<BaseScreen> _historyStack;
-        private List<BaseScreen> _overlayScreens;
-        
-        public BaseScreen MainScreen { get; private set; }
-
-        public bool MainDisplayed => MainScreen is not null;
-        
-        public BaseScreen ModalScreen { get; private set; }
-
-        public bool ModalDisplayed => ModalScreen is not null;
-
-        public IReadOnlyCollection<BaseScreen> OverlayScreens => _overlayScreens;
-        
-        private void Awake()
-        {
-            _layerManager = new LayerManager();
-            _historyStack = new Stack<BaseScreen>();
-            _overlayScreens = new List<BaseScreen>();
-        }
-        
         #region Main
         
         public T ToggleMain<T>() where T : Screen, new()
@@ -39,55 +15,36 @@ namespace Sklo
             ToggleMain(screen);
             return screen;
         }
-        
-        public TScreen ToggleMain<TScreen, TParameter>(TParameter parameter)
-            where TScreen : ParametricScreen<TParameter>, new()
-            where TParameter : unmanaged
-        {
-            var screen = new TScreen();
-            screen.SetParameter(parameter);
-            ToggleMain(screen);
-            return screen;
-        }
 
-        private void ToggleMain(BaseScreen screen)
+        private void ToggleMain(Screen screen)
         {
-            // TODO
-            if (screen.Displayed)
-                throw new Exception();
-            
-            if (ModalDisplayed)
-                throw new InvalidOperationException("Cannot switch the main screen while a modal screen is displayed.");
-
-            if (MainDisplayed)
+            if (!BeginToggleMain(screen, out var result))
+                return;
+            ((Screen)result.ScreenToHide)?.NotifyHidden();
+            ((Screen)result.ScreenToShow).NotifyShown();
+            if (result.LayersToHide is null)
             {
-                // Do nothing if trying to display the same screen type.
-                if (MainScreen.GetType() == screen.GetType())
-                    return;
-                
-                // Deal with the history stack.
-                if(_historyStack.Count > 0 && _historyStack.Peek().GetType() == screen.GetType())
-                    // Returned to the screen we have been before.
-                    _historyStack.Pop();
-                else if(MainDisplayed && !MainScreen.ExcludeFromHistory)
-                    // Store the screen so we can return to it by calling the corresponding method.
-                    _historyStack.Push(MainScreen);
-                
-                // TODO: recycle layers of the current screen and put it in the history.
-                
-                MainScreen.NotifyHidden();
+                foreach (var layer in result.LayersToShow)
+                    ((ScreenLayer)layer).NotifyShown();
             }
-            
-            var compositor = new ScreenCompositor(_layerManager);
-            // TODO: prevent re-creation of existing layers (pool and check already shown).
-            screen.Compose(compositor);
-            
-            MainScreen = screen;
-            screen.NotifyShown();
-            throw new NotImplementedException();
+            else
+            {
+                // NOTE: we are comparing by an object reference,
+                // and only transitional layers can move from the one screen to another,
+                // so it is safe to assume that transitional layers are the ones that in the both
+                // collections: layers to hide and layers to show.
+                var transitionalLayers = result.LayersToHide.Intersect(result.LayersToShow);
+                foreach (var layer in result.LayersToHide.Except(transitionalLayers))
+                    ((ScreenLayer)layer).NotifyHidden();
+                foreach (var layer in transitionalLayers)
+                    ((ScreenLayer)layer).NotifyTransition();
+                foreach (var layer in result.LayersToShow.Except(transitionalLayers))
+                    ((ScreenLayer)layer).NotifyShown();
+                // TODO: optimize.
+            }
+
+            EndToggleMain(result);
         }
-        
-        
 
         public void ToggleBack()
         {
@@ -109,13 +66,6 @@ namespace Sklo
         {
             throw new NotImplementedException();
         }
-
-        public void ShowModal<TScreen, TParameter>(TParameter parameter)
-            where TScreen : ParametricScreen<TParameter>, new()
-            where TParameter : unmanaged
-        {
-            throw new NotImplementedException();
-        }
         
         private void ShowModal(Screen screen)
         {
@@ -133,13 +83,6 @@ namespace Sklo
         #region Overlay
         
         public void ShowOverlay<T>() where T : Screen, new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ShowOverlay<TScreen, TParameter>(TParameter parameter)
-            where TScreen : ParametricScreen<TParameter>, new()
-            where TParameter : unmanaged
         {
             throw new NotImplementedException();
         }
