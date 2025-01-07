@@ -8,21 +8,18 @@ namespace Sklo
 
         protected virtual void OnShow()
         {
-            
         }
 
         internal void NotifyTransition() => OnTransition();
 
         protected virtual void OnTransition()
         {
-            
         }
         
         internal void NotifyHidden() => OnHide();
 
         protected virtual void OnHide()
         {
-            
         }
     }
     

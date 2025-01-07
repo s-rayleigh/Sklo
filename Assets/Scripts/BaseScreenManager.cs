@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -17,6 +18,12 @@ namespace Sklo
             public HashSet<BaseScreenLayer> LayersToShow;
             [MaybeNull]
             public HashSet<BaseScreenLayer> LayersToHide;
+
+            // NOTE: we are comparing by an object reference,
+            // and only transitional layers can move from the one screen to another,
+            // so it is safe to assume that transitional layers are the ones that in the both
+            // collections: layers to hide and layers to show.
+            public IEnumerable<BaseScreenLayer> GetTransitionalLayers() => LayersToHide.Intersect(LayersToShow);
             
             public void Dispose()
             {
@@ -107,8 +114,7 @@ namespace Sklo
             }
 
             result.LayersToShow = HashSetPool<BaseScreenLayer>.Get();
-            var compositor = new ScreenCompositor(_layerManager, result.LayersToShow);
-            screen.Compose(compositor);
+            screen.Compose(_layerManager, result.LayersToShow);
             
             MainScreen = screen;
             result.ScreenToShow = screen;
@@ -121,6 +127,34 @@ namespace Sklo
             _toggleMainBegun = false;
             _layerManager.ReleaseUnused();
             beginToggleResult.Dispose();
+        }
+        
+        protected void ToggleMain(Screen screen)
+        {
+            if (!BeginToggleMain(screen, out var result))
+                return;
+            
+            ((Screen)result.ScreenToHide)?.NotifyHidden();
+            ((Screen)result.ScreenToShow).NotifyShown();
+            
+            if (result.LayersToHide is null)
+            {
+                foreach (var layer in result.LayersToShow)
+                    ((ScreenLayer)layer).NotifyShown();
+            }
+            else
+            {
+                var transitionalLayers = result.GetTransitionalLayers();
+                foreach (var layer in result.LayersToHide.Except(transitionalLayers))
+                    ((ScreenLayer)layer).NotifyHidden();
+                foreach (var layer in transitionalLayers)
+                    ((ScreenLayer)layer).NotifyTransition();
+                foreach (var layer in result.LayersToShow.Except(transitionalLayers))
+                    ((ScreenLayer)layer).NotifyShown();
+                // TODO: optimize.
+            }
+
+            EndToggleMain(result);
         }
     }
 }

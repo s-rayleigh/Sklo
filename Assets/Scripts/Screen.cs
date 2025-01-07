@@ -18,10 +18,8 @@ namespace Sklo
         {
             
         }
-        
-        internal void Compose(ScreenCompositor compositor) => OnCompose(compositor);
-        
-        protected abstract void OnCompose(ScreenCompositor compositor);
+
+        internal abstract void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers);
         
         [return: MaybeNull]
         protected T GetLayer<T>() where T : BaseScreenLayer => (T)Layers.GetValueOrDefault(typeof(T));
@@ -31,7 +29,10 @@ namespace Sklo
 
     public abstract class BaseScreen<T> : BaseScreen where T : BaseScreenLayer
     {
-        
+        internal override void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers) =>
+            OnCompose(new ScreenCompositor<T>(layerManager, layers));
+
+        protected abstract void OnCompose(ScreenCompositor<T> compositor);
     }
 
     public abstract class Screen : BaseScreen<ScreenLayer>
