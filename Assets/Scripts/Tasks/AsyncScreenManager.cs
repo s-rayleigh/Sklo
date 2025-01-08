@@ -20,6 +20,19 @@ namespace Sklo.Tasks
             return screen;
         }
 
+        public async Task<BaseScreen> ToggleBack()
+        {
+            if (!TryPopFromHistory(out var baseScreen))
+                return null;
+            
+            if (baseScreen is Screen syncScreen)
+                ToggleMain(syncScreen);
+            else
+                await ToggleMain((AsyncScreen)baseScreen);
+            
+            return baseScreen;
+        }
+
         private async Task ToggleMain(AsyncScreen screen)
         {
             if (!BeginToggleMain(screen, out var result))

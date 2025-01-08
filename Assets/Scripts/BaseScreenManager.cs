@@ -156,5 +156,7 @@ namespace Sklo
 
             EndToggleMain(result);
         }
+
+        protected bool TryPopFromHistory([NotNullWhen(true)] out BaseScreen screen) => _historyStack.TryPop(out screen);
     }
 }

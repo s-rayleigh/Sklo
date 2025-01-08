@@ -16,9 +16,13 @@ namespace Sklo
             return screen;
         }
 
-        public void ToggleBack()
+        public Screen ToggleBack()
         {
-            throw new NotImplementedException();
+            if (!TryPopFromHistory(out var baseScreen))
+                return null;
+            var screen = (Screen)baseScreen;
+            base.ToggleMain(screen);
+            return screen;
         }
         
         public void HideMain()
