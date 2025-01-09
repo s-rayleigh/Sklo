@@ -12,9 +12,11 @@ namespace Sklo
     {
         protected struct BeginToggleResult : IDisposable
         {
+            [MaybeNull]
             public BaseScreen ScreenToShow;
             [MaybeNull]
             public BaseScreen ScreenToHide;
+            [MaybeNull]
             public HashSet<BaseScreenLayer> LayersToShow;
             [MaybeNull]
             public HashSet<BaseScreenLayer> LayersToHide;
@@ -45,6 +47,7 @@ namespace Sklo
         private Stack<BaseScreen> _historyStack;
         private List<BaseScreen> _overlayScreens;
         
+        [MaybeNull]
         public BaseScreen MainScreen { get; private set; }
 
         public bool MainDisplayed => MainScreen is not null;
@@ -64,10 +67,10 @@ namespace Sklo
             _overlayScreens = new List<BaseScreen>();
         }
 
-        protected bool BeginToggleMain(BaseScreen screen, out BeginToggleResult result)
+        protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
         {
             // TODO: text of the exception.
-            if (screen.Displayed)
+            if (screen is not null && screen.Displayed)
                 throw new Exception("");
             
             if (ModalDisplayed)
@@ -113,9 +116,12 @@ namespace Sklo
                 MainScreen.Layers.Clear();
             }
 
+            if (screen is null)
+                return true;
+            
             result.LayersToShow = HashSetPool<BaseScreenLayer>.Get();
             screen.Compose(_layerManager, result.LayersToShow);
-            
+
             MainScreen = screen;
             result.ScreenToShow = screen;
 
@@ -129,7 +135,7 @@ namespace Sklo
             beginToggleResult.Dispose();
         }
         
-        protected void ToggleMain(Screen screen)
+        protected void ToggleMain([MaybeNull] Screen screen)
         {
             if (!BeginToggleMain(screen, out var result))
                 return;

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Pool;
@@ -31,6 +32,13 @@ namespace Sklo.Tasks
                 await ToggleMain((AsyncScreen)baseScreen);
             
             return baseScreen;
+        }
+
+        public Task HideMain()
+        {
+            if (ModalDisplayed)
+                throw new InvalidOperationException("Cannot hide the main screen while a modal screen is displayed.");
+            return MainDisplayed ? ToggleMain(null) : Task.CompletedTask;
         }
 
         private async Task ToggleMain(AsyncScreen screen)

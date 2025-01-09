@@ -24,7 +24,7 @@ namespace Sklo
         [return: MaybeNull]
         protected T GetLayer<T>() where T : BaseScreenLayer => (T)Layers.GetValueOrDefault(typeof(T));
         
-        public bool SameAs(BaseScreen other) => other.GetType() == GetType();
+        public bool SameAs([MaybeNull] BaseScreen other) => other is not null && other.GetType() == GetType();
     }
 
     public abstract class BaseScreen<T> : BaseScreen where T : BaseScreenLayer

@@ -29,7 +29,9 @@ namespace Sklo
         {
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot hide the main screen while a modal screen is displayed.");
-            throw new NotImplementedException();
+            if (!MainDisplayed)
+                return;
+            base.ToggleMain(null);
         }
         
         #endregion Main
