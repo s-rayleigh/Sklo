@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Sklo
@@ -15,7 +16,7 @@ namespace Sklo
             _returnedLayers = new Dictionary<Type, BaseScreenLayer>();
         }
         
-        public T Get<T>() where T : BaseScreenLayer, new()
+        public T Get<T>(Transform parent) where T : BaseScreenLayer, new()
         {
             var type = typeof(T);
             
@@ -41,9 +42,8 @@ namespace Sklo
             if (viewPrefab is null)
                 throw new Exception($"No view prefab found for a layer of type {typeof(T).Name}");
 
-            // TODO: set parent object for a view (still need to think what may be a parent for the layer view.
             // TODO: virtual method so it can be overriden to use a pool instead.
-            layer.View = Object.Instantiate(viewPrefab);
+            layer.View = Object.Instantiate(viewPrefab, parent, false);
             
             return layer;
         }

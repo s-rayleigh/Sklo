@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using UnityEngine;
 
 namespace Sklo
 {
@@ -19,7 +20,7 @@ namespace Sklo
             
         }
 
-        internal abstract void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers);
+        internal abstract void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent);
         
         [return: MaybeNull]
         protected T GetLayer<T>() where T : BaseScreenLayer => (T)Layers.GetValueOrDefault(typeof(T));
@@ -29,8 +30,8 @@ namespace Sklo
 
     public abstract class BaseScreen<T> : BaseScreen where T : BaseScreenLayer
     {
-        internal override void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers) =>
-            OnCompose(new ScreenCompositor<T>(layerManager, layers));
+        internal override void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent) =>
+            OnCompose(new ScreenCompositor<T>(layerManager, layers, parent));
 
         protected abstract void OnCompose(ScreenCompositor<T> compositor);
     }

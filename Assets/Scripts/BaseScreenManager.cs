@@ -46,6 +46,10 @@ namespace Sklo
         private LayerManager _layerManager;
         private Stack<BaseScreen> _historyStack;
         private List<BaseScreen> _overlayScreens;
+        private bool _toggleMainBegun;
+        private Transform _mainParent;
+        private Transform _modalParent;
+        private Transform _overlayParent;
         
         [MaybeNull]
         public BaseScreen MainScreen { get; private set; }
@@ -57,14 +61,19 @@ namespace Sklo
         public bool ModalDisplayed => ModalScreen is not null;
         
         public IReadOnlyCollection<BaseScreen> OverlayScreens => _overlayScreens;
-
-        private bool _toggleMainBegun;
         
         protected virtual void Awake()
         {
             _layerManager = new LayerManager(_screenLayers);
             _historyStack = new Stack<BaseScreen>();
             _overlayScreens = new List<BaseScreen>();
+            
+            _mainParent = new GameObject("MainScreen").transform;
+            _mainParent.SetParent(transform, false);
+            _modalParent = new GameObject("ModalScreen").transform;
+            _modalParent.SetParent(transform, false);
+            _overlayParent = new GameObject("OverlayScreens").transform;
+            _overlayParent.SetParent(transform, false);
         }
 
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
@@ -120,7 +129,7 @@ namespace Sklo
                 return true;
             
             result.LayersToShow = HashSetPool<BaseScreenLayer>.Get();
-            screen.Compose(_layerManager, result.LayersToShow);
+            screen.Compose(_layerManager, result.LayersToShow, _mainParent);
 
             MainScreen = screen;
             result.ScreenToShow = screen;
