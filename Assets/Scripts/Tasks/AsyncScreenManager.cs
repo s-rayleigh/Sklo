@@ -50,24 +50,23 @@ namespace Sklo.Tasks
             
             if (result.ScreenToHide is not null)
                 tasks.Add(((AsyncScreen)result.ScreenToHide).NotifyHidden());
-            tasks.Add(((AsyncScreen)result.ScreenToShow).NotifyShown());
+            if (result.ScreenToShow is not null)
+                tasks.Add(((AsyncScreen)result.ScreenToShow).NotifyShown());
             
-            if (result.LayersToHide is null)
+            var transitionalLayers = result.GetTransitionalLayers();
+            if (result.LayersToHide is not null)
             {
-                foreach (var layer in result.LayersToShow)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyShown());
-            }
-            else
-            {
-                var transitionalLayers = result.GetTransitionalLayers();
                 foreach (var layer in result.LayersToHide.Except(transitionalLayers))
                     tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
-                foreach (var layer in transitionalLayers)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyTransition());
+            }
+            foreach (var layer in transitionalLayers)
+                tasks.Add(((AsyncScreenLayer)layer).NotifyTransition());
+            if (result.LayersToShow is not null)
+            {
                 foreach (var layer in result.LayersToShow.Except(transitionalLayers))
                     tasks.Add(((AsyncScreenLayer)layer).NotifyShown());
-                // TODO: optimize.
             }
+            // TODO: optimize.
 
             await Task.WhenAll(tasks);
             

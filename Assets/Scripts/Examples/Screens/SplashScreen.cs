@@ -14,13 +14,13 @@ namespace Sklo.Examples.Screens
         protected override void OnShow()
         {
             base.OnShow();
-            Debug.Log("Splash layer shown");
+            Debug.Log("Splash screen shown");
         }
 
         protected override void OnHide()
         {
             base.OnHide();
-            Debug.Log("Splash layer hidden");
+            Debug.Log("Splash screen hidden");
         }
     }
 }

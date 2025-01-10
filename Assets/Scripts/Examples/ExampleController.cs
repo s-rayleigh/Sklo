@@ -13,5 +13,14 @@ namespace Sklo.Examples
         {
             _screenManager.ToggleMain<SplashScreen>();
         }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.H) && _screenManager.MainDisplayed)
+                _screenManager.HideMain();
+            
+            if (Input.GetKeyDown(KeyCode.S))
+                _screenManager.ToggleMain<SplashScreen>();
+        }
     }
 }

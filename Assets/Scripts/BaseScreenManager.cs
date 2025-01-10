@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,13 +21,18 @@ namespace Sklo
             public HashSet<BaseScreenLayer> LayersToShow;
             [MaybeNull]
             public HashSet<BaseScreenLayer> LayersToHide;
-
-            // NOTE: we are comparing by an object reference,
-            // and only transitional layers can move from the one screen to another,
-            // so it is safe to assume that transitional layers are the ones that in the both
-            // collections: layers to hide and layers to show.
-            public IEnumerable<BaseScreenLayer> GetTransitionalLayers() => LayersToHide.Intersect(LayersToShow);
             
+            public IEnumerable<BaseScreenLayer> GetTransitionalLayers()
+            {
+                if (LayersToShow is null || LayersToHide is null)
+                    return Enumerable.Empty<BaseScreenLayer>();
+                // NOTE: we are comparing by an object reference,
+                // and only transitional layers can move from the one screen to another,
+                // so it is safe to assume that transitional layers are the ones that in the both
+                // collections: layers to hide and layers to show.
+                return LayersToHide.Intersect(LayersToShow);
+            }
+
             public void Dispose()
             {
                 if (LayersToHide is not null)
@@ -135,14 +141,16 @@ namespace Sklo
                 MainScreen.Layers.Clear();
             }
 
+            MainScreen = screen;
+            result.ScreenToShow = screen;
+            
             if (screen is null)
                 return true;
             
             result.LayersToShow = HashSetPool<BaseScreenLayer>.Get();
             screen.Compose(_layerManager, result.LayersToShow, _mainParent);
-
-            MainScreen = screen;
-            result.ScreenToShow = screen;
+            foreach (var layer in result.LayersToShow)
+                screen.Layers.Add(layer.GetType(), layer);
 
             return true;
         }
@@ -160,25 +168,23 @@ namespace Sklo
                 return;
             
             ((Screen)result.ScreenToHide)?.NotifyHidden();
-            ((Screen)result.ScreenToShow).NotifyShown();
+            ((Screen)result.ScreenToShow)?.NotifyShown();
             
-            if (result.LayersToHide is null)
+            var transitionalLayers = result.GetTransitionalLayers();
+            if (result.LayersToHide is not null)
             {
-                foreach (var layer in result.LayersToShow)
-                    ((ScreenLayer)layer).NotifyShown();
-            }
-            else
-            {
-                var transitionalLayers = result.GetTransitionalLayers();
                 foreach (var layer in result.LayersToHide.Except(transitionalLayers))
                     ((ScreenLayer)layer).NotifyHidden();
-                foreach (var layer in transitionalLayers)
-                    ((ScreenLayer)layer).NotifyTransition();
+            }
+            foreach (var layer in transitionalLayers)
+                ((ScreenLayer)layer).NotifyTransition();
+            if (result.LayersToShow is not null)
+            {
                 foreach (var layer in result.LayersToShow.Except(transitionalLayers))
                     ((ScreenLayer)layer).NotifyShown();
-                // TODO: optimize.
             }
-
+            // TODO: optimize.
+            
             EndToggleMain(result);
         }
 

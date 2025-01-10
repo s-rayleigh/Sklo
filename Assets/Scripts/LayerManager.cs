@@ -59,7 +59,7 @@ namespace Sklo
 
         protected virtual void ReleaseLayer(BaseScreenLayer layer)
         {
-            Object.Destroy(layer.View);
+            Object.Destroy(layer.View.gameObject);
             layer.View = null;
         }
     }
