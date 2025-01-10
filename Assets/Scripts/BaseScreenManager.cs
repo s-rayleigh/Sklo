@@ -43,6 +43,9 @@ namespace Sklo
         [SerializeField]
         private ScreenLayerView[] _screenLayers;
 
+        [SerializeField]
+        private Transform _viewsParent;
+
         private LayerManager _layerManager;
         private Stack<BaseScreen> _historyStack;
         private List<BaseScreen> _overlayScreens;
@@ -67,13 +70,14 @@ namespace Sklo
             _layerManager = new LayerManager(_screenLayers);
             _historyStack = new Stack<BaseScreen>();
             _overlayScreens = new List<BaseScreen>();
-            
+
+            var parent = _viewsParent ?? transform;
             _mainParent = new GameObject("MainScreen").transform;
-            _mainParent.SetParent(transform, false);
+            _mainParent.SetParent(parent, false);
             _modalParent = new GameObject("ModalScreen").transform;
-            _modalParent.SetParent(transform, false);
+            _modalParent.SetParent(parent, false);
             _overlayParent = new GameObject("OverlayScreens").transform;
-            _overlayParent.SetParent(transform, false);
+            _overlayParent.SetParent(parent, false);
         }
 
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
