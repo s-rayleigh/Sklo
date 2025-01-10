@@ -72,12 +72,18 @@ namespace Sklo
             _overlayScreens = new List<BaseScreen>();
 
             var parent = _viewsParent ?? transform;
-            _mainParent = new GameObject("MainScreen").transform;
-            _mainParent.SetParent(parent, false);
-            _modalParent = new GameObject("ModalScreen").transform;
-            _modalParent.SetParent(parent, false);
-            _overlayParent = new GameObject("OverlayScreens").transform;
-            _overlayParent.SetParent(parent, false);
+            _mainParent = CreateScreenParentObj("MainScreen", parent);
+            _modalParent = CreateScreenParentObj("ModalScreen", parent);
+            _overlayParent = CreateScreenParentObj("OverlayScreens", parent);
+        }
+
+        private static RectTransform CreateScreenParentObj(string name, Transform parent)
+        {
+            var rectTransform = new GameObject(name).AddComponent<RectTransform>();
+            rectTransform.SetParent(parent, false);
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            return rectTransform;
         }
 
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
