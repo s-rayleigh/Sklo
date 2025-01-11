@@ -1,3 +1,4 @@
+using Sklo.Examples.Layers;
 using Sklo.Examples.Screens;
 using UnityEngine;
 
@@ -11,6 +12,11 @@ namespace Sklo.Examples
 
         private void Awake()
         {
+            _screenManager.BeforeLayerShow += layer =>
+            {
+                if (layer is IScreenManagerHolderLayer holder)
+                    holder.ScreenManager = _screenManager;
+            };
             _screenManager.ToggleMain<SplashScreen>();
         }
 

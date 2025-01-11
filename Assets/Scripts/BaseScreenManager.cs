@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -70,6 +69,10 @@ namespace Sklo
         public bool ModalDisplayed => ModalScreen is not null;
         
         public IReadOnlyCollection<BaseScreen> OverlayScreens => _overlayScreens;
+
+        public event Action<BaseScreenLayer> BeforeLayerShow;
+        
+        public event Action<BaseScreenLayer> BeforeLayerHide;
         
         protected virtual void Awake()
         {
@@ -139,6 +142,12 @@ namespace Sklo
                     result.LayersToHide.Add(layer);
                 }
                 MainScreen.Layers.Clear();
+
+                if (BeforeLayerHide is not null)
+                {
+                    foreach (var layer in result.LayersToHide)
+                        BeforeLayerHide(layer);
+                }
             }
 
             MainScreen = screen;
@@ -151,6 +160,12 @@ namespace Sklo
             screen.Compose(_layerManager, result.LayersToShow, _mainParent);
             foreach (var layer in result.LayersToShow)
                 screen.Layers.Add(layer.GetType(), layer);
+
+            if (BeforeLayerShow is not null)
+            {
+                foreach (var layer in result.LayersToShow)
+                    BeforeLayerShow(layer);
+            }
 
             return true;
         }

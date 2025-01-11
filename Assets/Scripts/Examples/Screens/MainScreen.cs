@@ -1,0 +1,13 @@
+using Sklo.Examples.Layers;
+
+namespace Sklo.Examples.Screens
+{
+    public sealed class MainScreen : Screen
+    {
+        protected override void OnCompose(ScreenCompositor<ScreenLayer> compositor)
+        {
+            compositor.AddLayer<BackgroundLayer>();
+            compositor.AddLayer<MainScreenLayer>();
+        }
+    }
+}
