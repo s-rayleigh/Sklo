@@ -17,7 +17,7 @@ namespace Sklo
 
         public Screen ToggleBack()
         {
-            if (!TryPopFromHistory(out var baseScreen))
+            if (!TryPeekInHistory(out var baseScreen))
                 return null;
             var screen = (Screen)baseScreen;
             base.ToggleMain(screen);

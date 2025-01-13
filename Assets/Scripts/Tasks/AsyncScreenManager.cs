@@ -23,7 +23,7 @@ namespace Sklo.Tasks
 
         public async Task<BaseScreen> ToggleBack()
         {
-            if (!TryPopFromHistory(out var baseScreen))
+            if (!TryPeekInHistory(out var baseScreen))
                 return null;
             
             if (baseScreen is Screen syncScreen)
