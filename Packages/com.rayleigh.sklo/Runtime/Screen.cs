@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
-namespace Sklo
+namespace Rayleigh.Sklo
 {
     public abstract class BaseScreen
     {

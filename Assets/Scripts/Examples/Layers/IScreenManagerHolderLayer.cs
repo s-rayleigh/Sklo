@@ -1,3 +1,5 @@
+using Rayleigh.Sklo;
+
 namespace Sklo.Examples.Layers
 {
     public interface IScreenManagerHolderLayer

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Sklo
+namespace Rayleigh.Sklo
 {
     public abstract class ScreenLayerView : MonoBehaviour
     {

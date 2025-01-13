@@ -1,0 +1,19 @@
+{
+  "name": "com.rayleigh.sklo",
+  "version": "0.1.0",
+  "displayName": "Sklo",
+  "description": "A lightweight UI framework for Unity whose main purpose is to simplify the composition of screens and the transitions between them.",
+  "unity": "2022.3",
+  "type": "library",
+  "keywords": [
+    "ui",
+    "framework",
+    "screen",
+    "pages"
+  ],
+  "author": {
+    "name": "Vladyslav Pashaiev",
+    "email": "rayleigh@protonmail.com",
+    "url": "https://github.com/s-rayleigh"
+  }
+}

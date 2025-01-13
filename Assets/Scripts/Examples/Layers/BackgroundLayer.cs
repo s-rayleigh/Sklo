@@ -1,3 +1,4 @@
+using Rayleigh.Sklo;
 using UnityEngine;
 
 namespace Sklo.Examples.Layers

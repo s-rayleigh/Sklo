@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Sklo.Tasks
+namespace Rayleigh.Sklo.Tasks
 {
     public abstract class AsyncScreenLayer : BaseScreenLayer
     {

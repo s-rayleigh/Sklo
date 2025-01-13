@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.rayleigh.sklo": {
+      "version": "file:com.rayleigh.sklo",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.burst": {
       "version": "1.8.18",
       "depth": 1,

@@ -1,6 +1,6 @@
 using System;
 
-namespace Sklo
+namespace Rayleigh.Sklo
 {
     public abstract class BaseScreenLayer
     {

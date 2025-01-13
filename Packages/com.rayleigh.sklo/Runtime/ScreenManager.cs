@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Sklo
+namespace Rayleigh.Sklo
 {
     [DisallowMultipleComponent]
     public class ScreenManager : BaseScreenManager

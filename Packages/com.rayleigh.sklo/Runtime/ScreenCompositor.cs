@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Sklo
+namespace Rayleigh.Sklo
 {
     public sealed class ScreenCompositor<TLayer> where TLayer : BaseScreenLayer
     {

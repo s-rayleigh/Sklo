@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace Sklo
+namespace Rayleigh.Sklo
 {
     [DisallowMultipleComponent]
     public abstract class BaseScreenManager : MonoBehaviour

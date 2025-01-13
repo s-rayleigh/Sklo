@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Pool;
 
-namespace Sklo.Tasks
+namespace Rayleigh.Sklo.Tasks
 {
     public sealed class AsyncScreenManager : BaseAsyncScreenManager<AsyncScreen>
     {

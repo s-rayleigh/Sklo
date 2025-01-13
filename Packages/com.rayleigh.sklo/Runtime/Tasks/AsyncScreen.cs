@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-using LayerType = Sklo.Tasks.AsyncScreenLayer;
 
-namespace Sklo.Tasks
+namespace Rayleigh.Sklo.Tasks
 {
-    public abstract class AsyncScreen : BaseScreen<LayerType>
+    public abstract class AsyncScreen : BaseScreen<AsyncScreenLayer>
     {
         internal Task NotifyShown()
         {
