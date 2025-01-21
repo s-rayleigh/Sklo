@@ -92,6 +92,8 @@ namespace Rayleigh.Sklo
             rectTransform.SetParent(parent, false);
             rectTransform.anchorMin = Vector2.zero;
             rectTransform.anchorMax = Vector2.one;
+            rectTransform.offsetMin = Vector2.zero;
+            rectTransform.offsetMax = Vector2.zero;
             return rectTransform;
         }
 
