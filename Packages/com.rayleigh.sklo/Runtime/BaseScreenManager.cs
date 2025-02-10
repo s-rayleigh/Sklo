@@ -102,15 +102,10 @@ namespace Rayleigh.Sklo
             // TODO: text of the exception.
             if (screen is not null && screen.Displayed)
                 throw new Exception("");
-            
             if (ModalDisplayed)
-                throw new InvalidOperationException("Cannot switch the main screen while a modal screen is displayed.");
-
+                throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
             if (_toggleMainBegun)
-            {
-                throw new InvalidOperationException(
-                    "Cannot begin toggling the main screen because toggle is already begun");
-            }
+                throw new InvalidOperationException("Cannot begin toggle the screen because toggle is already begun.");
 
             _toggleMainBegun = true;
             result = new BeginToggleResult();
@@ -185,7 +180,7 @@ namespace Rayleigh.Sklo
                 return;
             
             ((Screen)result.ScreenToHide)?.NotifyHidden();
-            ((Screen)result.ScreenToShow)?.NotifyShown();
+            ((Screen)result.ScreenToShow)?.NotifyShown(DisplayType.Main);
             
             var transitionalLayers = result.GetTransitionalLayers();
             if (result.LayersToHide is not null)
