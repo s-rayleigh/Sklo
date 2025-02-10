@@ -73,6 +73,10 @@ namespace Rayleigh.Sklo
         public event Action<BaseScreenLayer> BeforeLayerShow;
         
         public event Action<BaseScreenLayer> BeforeLayerHide;
+
+        public event Action<BaseScreen, DisplayType> BeforeScreenShow;
+
+        public event Action<BaseScreen, DisplayType> BeforeScreenHide;
         
         protected virtual void Awake()
         {
@@ -145,6 +149,8 @@ namespace Rayleigh.Sklo
                     foreach (var layer in result.LayersToHide)
                         BeforeLayerHide(layer);
                 }
+
+                BeforeScreenHide?.Invoke(screen, DisplayType.Main);
             }
 
             MainScreen = screen;
@@ -163,6 +169,8 @@ namespace Rayleigh.Sklo
                 foreach (var layer in result.LayersToShow)
                     BeforeLayerShow(layer);
             }
+            
+            BeforeScreenShow?.Invoke(screen, DisplayType.Main);
 
             return true;
         }
