@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Rayleigh.Sklo;
 using Sklo.Examples.Screens;
@@ -5,8 +6,10 @@ using UnityEngine;
 
 namespace Sklo.Examples.Layers
 {
-    public class SplashLayer : ScreenLayer<SplashLayer, SplashLayerView>, IScreenManagerHolderLayer
+    public sealed class SplashLayer : ScreenLayer<SplashLayer, SplashLayerView>, IScreenManagerHolderLayer
     {
+        private const float ShowDuration = 3f;
+        
         public ScreenManager ScreenManager { get; set; }
         
         protected override void OnHide()
@@ -30,7 +33,14 @@ namespace Sklo.Examples.Layers
 
         private IEnumerator SplashDelay()
         {
-            yield return new WaitForSeconds(2f);
+            var time = ShowDuration;
+            while (time > 0f)
+            {
+                time -= Time.deltaTime;
+                View.SetTimeLeft(TimeSpan.FromSeconds(time));
+                yield return null;
+            }
+
             ScreenManager.ToggleMain<MainScreen>();
         }
     }
