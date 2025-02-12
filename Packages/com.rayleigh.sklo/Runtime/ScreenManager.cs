@@ -37,19 +37,15 @@ namespace Rayleigh.Sklo
 
         #region Modal
 
-        public void ShowModal<T>() where T : Screen, new()
+        public T ShowModal<T>() where T : Screen, new()
         {
-            throw new NotImplementedException();
+            var screen = new T();
+            ShowModal(screen);
+            return screen;
         }
-        
-        private void ShowModal(Screen screen)
+
+        public void HideModal()
         {
-            if (ModalDisplayed)
-            {
-                throw new InvalidOperationException(
-                    "Cannot show the modal screen while other modal screen is already displayed.");
-            }
-            
             throw new NotImplementedException();
         }
         

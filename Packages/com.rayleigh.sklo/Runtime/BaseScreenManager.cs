@@ -44,6 +44,23 @@ namespace Rayleigh.Sklo
                 ScreenToHide = null;
             }
         }
+
+        protected readonly struct BeginProcessResult : IDisposable
+        {
+            private readonly BaseScreen _screen;
+            private readonly HashSet<BaseScreenLayer> _layersToProcess;
+
+            public BaseScreen Screen => _screen;
+            public HashSet<BaseScreenLayer> LayersToProcess => _layersToProcess;
+
+            public BeginProcessResult(BaseScreen screen)
+            {
+                _screen = screen;
+                _layersToProcess = HashSetPool<BaseScreenLayer>.Get();
+            }
+
+            public void Dispose() => HashSetPool<BaseScreenLayer>.Release(_layersToProcess);
+        }
         
         [SerializeField]
         private ScreenLayerView[] _screenLayers;
@@ -54,7 +71,7 @@ namespace Rayleigh.Sklo
         private LayerManager _layerManager;
         private Stack<BaseScreen> _historyStack;
         private List<BaseScreen> _overlayScreens;
-        private bool _toggleMainBegun;
+        private bool _screenProcessBegun;
         private Transform _mainParent;
         private Transform _modalParent;
         private Transform _overlayParent;
@@ -70,9 +87,9 @@ namespace Rayleigh.Sklo
         
         public IReadOnlyCollection<BaseScreen> OverlayScreens => _overlayScreens;
 
-        public event Action<BaseScreenLayer> BeforeLayerShow;
+        public event Action<BaseScreenLayer, DisplayType> BeforeLayerShow;
         
-        public event Action<BaseScreenLayer> BeforeLayerHide;
+        public event Action<BaseScreenLayer, DisplayType> BeforeLayerHide;
 
         public event Action<BaseScreen, DisplayType> BeforeScreenShow;
 
@@ -101,6 +118,33 @@ namespace Rayleigh.Sklo
             return rectTransform;
         }
 
+        private Transform GetParentObj(DisplayType displayType) => displayType switch
+        {
+            DisplayType.Main => _mainParent,
+            DisplayType.Modal => _modalParent,
+            DisplayType.Overlay => _overlayParent,
+            _ => throw new ArgumentOutOfRangeException(nameof(displayType), displayType, "Specify valid display type.")
+        };
+
+        private void BeginShowScreenInternal(BaseScreen screen, HashSet<BaseScreenLayer> layers,
+            DisplayType displayType)
+        {
+            screen.Compose(_layerManager, layers, GetParentObj(displayType));
+            
+            foreach (var layer in layers)
+                screen.Layers.Add(layer.GetType(), layer);
+
+            if (BeforeLayerShow is not null)
+            {
+                foreach (var layer in layers)
+                    BeforeLayerShow(layer, displayType);
+            }
+            
+            BeforeScreenShow?.Invoke(screen, displayType);
+        }
+        
+        #region Main
+        
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
         {
             // TODO: text of the exception.
@@ -108,10 +152,10 @@ namespace Rayleigh.Sklo
                 throw new Exception("");
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
-            if (_toggleMainBegun)
+            if (_screenProcessBegun)
                 throw new InvalidOperationException("Cannot begin toggle the screen because toggle is already begun.");
 
-            _toggleMainBegun = true;
+            _screenProcessBegun = true;
             result = new BeginToggleResult();
             
             if (MainDisplayed)
@@ -119,7 +163,7 @@ namespace Rayleigh.Sklo
                 // Do nothing if trying to display the same screen type.
                 if (MainScreen.SameAs(screen))
                 {
-                    _toggleMainBegun = false;
+                    _screenProcessBegun = false;
                     result.Dispose();
                     return false;
                 }
@@ -147,7 +191,7 @@ namespace Rayleigh.Sklo
                 if (BeforeLayerHide is not null)
                 {
                     foreach (var layer in result.LayersToHide)
-                        BeforeLayerHide(layer);
+                        BeforeLayerHide(layer, DisplayType.Main);
                 }
 
                 BeforeScreenHide?.Invoke(screen, DisplayType.Main);
@@ -160,24 +204,14 @@ namespace Rayleigh.Sklo
                 return true;
             
             result.LayersToShow = HashSetPool<BaseScreenLayer>.Get();
-            screen.Compose(_layerManager, result.LayersToShow, _mainParent);
-            foreach (var layer in result.LayersToShow)
-                screen.Layers.Add(layer.GetType(), layer);
-
-            if (BeforeLayerShow is not null)
-            {
-                foreach (var layer in result.LayersToShow)
-                    BeforeLayerShow(layer);
-            }
+            BeginShowScreenInternal(screen, result.LayersToShow, DisplayType.Main);
             
-            BeforeScreenShow?.Invoke(screen, DisplayType.Main);
-
             return true;
         }
 
         protected void EndToggleMain(BeginToggleResult beginToggleResult)
         {
-            _toggleMainBegun = false;
+            _screenProcessBegun = false;
             _layerManager.ReleaseUnused();
             beginToggleResult.Dispose();
         }
@@ -209,5 +243,60 @@ namespace Rayleigh.Sklo
         }
 
         protected bool TryPeekInHistory([NotNullWhen(true)] out BaseScreen screen) => _historyStack.TryPeek(out screen);
+        
+        #endregion Main
+        
+        #region Modal
+
+        protected BeginProcessResult BeginShowModal(BaseScreen screen)
+        {
+            if (screen is null)
+                throw new ArgumentNullException(nameof(screen));
+            if (ModalDisplayed)
+                throw new InvalidOperationException("Cannot show a modal screen while another is being displayed.");
+            if (_screenProcessBegun)
+                throw new InvalidOperationException("Cannot show a screen because another process is already begun.");
+
+            _screenProcessBegun = true;
+            ModalScreen = screen;
+            
+            var result = new BeginProcessResult(screen);
+            BeginShowScreenInternal(screen, result.LayersToProcess, DisplayType.Modal);
+            
+            return result;
+        }
+
+        protected void EndShowModal(BeginProcessResult beginProcessResult)
+        {
+            _screenProcessBegun = false;
+            _layerManager.ReleaseUnused();
+            beginProcessResult.Dispose();
+        }
+        
+        protected void ShowModal([NotNull] Screen screen)
+        {
+            var result = BeginShowModal(screen);
+            
+            ((Screen)result.Screen)?.NotifyShown(DisplayType.Modal);
+            if (result.LayersToProcess is not null)
+            {
+                foreach (var layer in result.LayersToProcess)
+                    ((ScreenLayer)layer).NotifyShown();
+            }
+            
+            EndShowModal(result);
+        }
+
+        protected void BeginHideModal()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected void EndHideModal()
+        {
+            throw new NotImplementedException();
+        }
+        
+        #endregion Modal
     }
 }

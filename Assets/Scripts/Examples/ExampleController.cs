@@ -13,7 +13,7 @@ namespace Sklo.Examples
 
         private void Awake()
         {
-            _screenManager.BeforeLayerShow += layer =>
+            _screenManager.BeforeLayerShow += (layer, _) =>
             {
                 if (layer is IScreenManagerHolderLayer holder)
                     holder.ScreenManager = _screenManager;
