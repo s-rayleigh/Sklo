@@ -13,6 +13,8 @@ namespace Rayleigh.Sklo
         
         public DisplayType DisplayType { get; protected set; }
         
+        public Transform ParentContainer { get; internal set; }
+        
         public bool Destroyed { get; private set; }
 
         public virtual bool ExcludeFromHistory => false;
@@ -22,7 +24,10 @@ namespace Rayleigh.Sklo
             
         }
 
-        internal abstract void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent);
+        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent)
+        {
+            ParentContainer = parent;
+        }
         
         [return: MaybeNull]
         protected T GetLayer<T>() where T : BaseScreenLayer => (T)Layers.GetValueOrDefault(typeof(T));

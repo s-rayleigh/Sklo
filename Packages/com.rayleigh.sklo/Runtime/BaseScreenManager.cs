@@ -126,21 +126,59 @@ namespace Rayleigh.Sklo
             _ => throw new ArgumentOutOfRangeException(nameof(displayType), displayType, "Specify valid display type.")
         };
 
-        private void BeginShowScreenInternal(BaseScreen screen, HashSet<BaseScreenLayer> layers,
+        private void BeginShowScreenInternal(BaseScreen screen, HashSet<BaseScreenLayer> layersToShow,
             DisplayType displayType)
         {
-            screen.Compose(_layerManager, layers, GetParentObj(displayType));
+            var parentObj = GetParentObj(displayType);
+            if (displayType is DisplayType.Overlay)
+                parentObj = CreateScreenParentObj(screen.GetType().Name, parentObj);
             
-            foreach (var layer in layers)
+            screen.Compose(_layerManager, layersToShow, parentObj);
+            
+            foreach (var layer in layersToShow)
                 screen.Layers.Add(layer.GetType(), layer);
 
             if (BeforeLayerShow is not null)
             {
-                foreach (var layer in layers)
+                foreach (var layer in layersToShow)
                     BeforeLayerShow(layer, displayType);
             }
             
             BeforeScreenShow?.Invoke(screen, displayType);
+        }
+
+        private void EndProcessInternal(IDisposable beginResult)
+        {
+            _screenProcessBegun = false;
+            _layerManager.ReleaseUnused();
+            beginResult.Dispose();
+        }
+
+        private void BeginHideScreenInternal(BaseScreen screen, HashSet<BaseScreenLayer> layersToHide,
+            DisplayType displayType)
+        {
+            foreach (var layer in screen.Layers.Values)
+            {
+                // Return layers to the manager so it knows which transitional layers available for re-use.
+                _layerManager.Return(layer);
+                // Add the layer to the list of layers to hide.
+                layersToHide.Add(layer);
+            }
+            screen.Layers.Clear();
+            screen.ParentContainer = null;
+
+            if (BeforeLayerHide is not null)
+            {
+                foreach (var layer in layersToHide)
+                    BeforeLayerHide(layer, displayType);
+            }
+
+            BeforeScreenHide?.Invoke(screen, displayType);
+        }
+
+        private void EndHideScreenInternal()
+        {
+            throw new NotImplementedException();
         }
         
         #region Main
@@ -179,22 +217,7 @@ namespace Rayleigh.Sklo
                 result.ScreenToHide = MainScreen;
                 result.LayersToHide = HashSetPool<BaseScreenLayer>.Get();
                 
-                foreach (var layer in MainScreen.Layers.Values)
-                {
-                    // Return layers to the manager so it knows which transitional layers available for re-use.
-                    _layerManager.Return(layer);
-                    // Add the layer to the list of layers to hide.
-                    result.LayersToHide.Add(layer);
-                }
-                MainScreen.Layers.Clear();
-
-                if (BeforeLayerHide is not null)
-                {
-                    foreach (var layer in result.LayersToHide)
-                        BeforeLayerHide(layer, DisplayType.Main);
-                }
-
-                BeforeScreenHide?.Invoke(screen, DisplayType.Main);
+                BeginHideScreenInternal(result.ScreenToHide, result.LayersToHide, DisplayType.Main);
             }
 
             MainScreen = screen;
@@ -209,13 +232,8 @@ namespace Rayleigh.Sklo
             return true;
         }
 
-        protected void EndToggleMain(BeginToggleResult beginToggleResult)
-        {
-            _screenProcessBegun = false;
-            _layerManager.ReleaseUnused();
-            beginToggleResult.Dispose();
-        }
-        
+        protected void EndToggleMain(BeginToggleResult beginToggleResult) => EndProcessInternal(beginToggleResult);
+
         protected void ToggleMain([MaybeNull] Screen screen)
         {
             if (!BeginToggleMain(screen, out var result))
@@ -266,37 +284,73 @@ namespace Rayleigh.Sklo
             return result;
         }
 
-        protected void EndShowModal(BeginProcessResult beginProcessResult)
-        {
-            _screenProcessBegun = false;
-            _layerManager.ReleaseUnused();
-            beginProcessResult.Dispose();
-        }
-        
+        protected void EndShowModal(BeginProcessResult beginProcessResult) => EndProcessInternal(beginProcessResult);
+
         protected void ShowModal([NotNull] Screen screen)
         {
             var result = BeginShowModal(screen);
             
-            ((Screen)result.Screen)?.NotifyShown(DisplayType.Modal);
-            if (result.LayersToProcess is not null)
-            {
-                foreach (var layer in result.LayersToProcess)
-                    ((ScreenLayer)layer).NotifyShown();
-            }
+            ((Screen)result.Screen).NotifyShown(DisplayType.Modal);
+            foreach (var layer in result.LayersToProcess)
+                ((ScreenLayer)layer).NotifyShown();
             
             EndShowModal(result);
         }
 
-        protected void BeginHideModal()
+        protected BeginProcessResult BeginHideModal()
+        {
+            if (!ModalDisplayed)
+                throw new InvalidOperationException("Can't hide a modal screen because it isn't currently displayed.");
+            if (_screenProcessBegun)
+                throw new InvalidOperationException("Cannot hide a screen because another process is already begun.");
+
+            var result = new BeginProcessResult(ModalScreen);
+            BeginHideScreenInternal(result.Screen, result.LayersToProcess, DisplayType.Modal);
+            return result;
+        }
+
+        protected void EndHideModal(BeginProcessResult beginProcessResult)
+        {
+            ModalScreen = null;
+            EndProcessInternal(beginProcessResult);
+        }
+
+        protected void HideModal()
+        {
+            var result = BeginHideModal();
+            
+            ((Screen)result.Screen).NotifyHidden();
+            foreach (var layer in result.LayersToProcess)
+                ((ScreenLayer)layer).NotifyShown();
+            
+            EndHideModal(result);
+        }
+        
+        #endregion Modal
+        
+        #region Overlay
+
+        protected void BeginShowOverlay()
         {
             throw new NotImplementedException();
         }
 
-        protected void EndHideModal()
+        protected void EndShowOverlay()
         {
             throw new NotImplementedException();
         }
         
-        #endregion Modal
+        protected void BeginHideOverlay()
+        {
+            throw new NotImplementedException();
+        }
+        
+        protected void EndHideOverlay()
+        {
+            // TODO: destroy object for overlay screen (or pool?).
+            throw new NotImplementedException();
+        }
+        
+        #endregion Overlay
     }
 }

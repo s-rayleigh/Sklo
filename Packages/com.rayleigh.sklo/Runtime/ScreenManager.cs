@@ -44,10 +44,7 @@ namespace Rayleigh.Sklo
             return screen;
         }
 
-        public void HideModal()
-        {
-            throw new NotImplementedException();
-        }
+        public new void HideModal() => base.HideModal();
         
         #endregion Modal
 
