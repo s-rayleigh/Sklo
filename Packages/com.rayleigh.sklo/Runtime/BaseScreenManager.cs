@@ -321,7 +321,7 @@ namespace Rayleigh.Sklo
             
             ((Screen)result.Screen).NotifyHidden();
             foreach (var layer in result.LayersToProcess)
-                ((ScreenLayer)layer).NotifyShown();
+                ((ScreenLayer)layer).NotifyHidden();
             
             EndHideModal(result);
         }
