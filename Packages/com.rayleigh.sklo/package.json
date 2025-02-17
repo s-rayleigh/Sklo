@@ -1,6 +1,6 @@
 {
   "name": "com.rayleigh.sklo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Sklo",
   "description": "A lightweight UI framework for Unity whose main purpose is to simplify the composition of screens and the transitions between them.",
   "unity": "2022.3",
