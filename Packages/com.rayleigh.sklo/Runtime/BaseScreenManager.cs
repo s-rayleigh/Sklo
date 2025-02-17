@@ -134,9 +134,12 @@ namespace Rayleigh.Sklo
                 parentObj = CreateScreenParentObj(screen.GetType().Name, parentObj);
             
             screen.Compose(_layerManager, layersToShow, parentObj);
-            
+
             foreach (var layer in layersToShow)
+            {
+                layer.DisplayType = displayType;
                 screen.Layers.Add(layer.GetType(), layer);
+            }
 
             if (BeforeLayerShow is not null)
             {

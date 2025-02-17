@@ -6,6 +6,8 @@ namespace Rayleigh.Sklo
     {
         public ScreenLayerView View { get; internal set; }
         
+        public DisplayType DisplayType { get; internal set; }
+        
         internal abstract Type ViewType { get; }
         
         public virtual bool Transitional => true;
