@@ -175,11 +175,6 @@ namespace Rayleigh.Sklo
 
             BeforeScreenHide?.Invoke(screen, displayType);
         }
-
-        private void EndHideScreenInternal()
-        {
-            throw new NotImplementedException();
-        }
         
         #region Main
         
