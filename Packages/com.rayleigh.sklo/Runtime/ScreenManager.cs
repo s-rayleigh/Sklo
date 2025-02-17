@@ -8,9 +8,10 @@ namespace Rayleigh.Sklo
     {
         #region Main
         
-        public T ToggleMain<T>() where T : Screen, new()
+        public T ToggleMain<T>(Action<T> init = null) where T : Screen, new()
         {
             var screen = new T();
+            init?.Invoke(screen);
             ToggleMain(screen);
             return screen;
         }
@@ -37,9 +38,10 @@ namespace Rayleigh.Sklo
 
         #region Modal
 
-        public T ShowModal<T>() where T : Screen, new()
+        public T ShowModal<T>(Action<T> init = null) where T : Screen, new()
         {
             var screen = new T();
+            init?.Invoke(screen);
             ShowModal(screen);
             return screen;
         }
@@ -50,7 +52,7 @@ namespace Rayleigh.Sklo
 
         #region Overlay
         
-        public void ShowOverlay<T>() where T : Screen, new()
+        public void ShowOverlay<T>(Action<T> init = null) where T : Screen, new()
         {
             throw new NotImplementedException();
         }

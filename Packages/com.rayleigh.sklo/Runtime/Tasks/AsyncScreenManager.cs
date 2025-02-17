@@ -8,10 +8,11 @@ namespace Rayleigh.Sklo.Tasks
     public sealed class AsyncScreenManager : BaseAsyncScreenManager<AsyncScreen>
     {
         #region Main
-        public async Task<T> ToggleMain<T>() where T : BaseScreen, new()
+        public async Task<T> ToggleMain<T>(Action<T> init = null) where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
+            init?.Invoke(screen);
 
             if (screen is Screen syncScreen)
                 ToggleMain(syncScreen);
@@ -86,10 +87,11 @@ namespace Rayleigh.Sklo.Tasks
         
         #region Modal
 
-        public async Task<T> ShowModal<T>() where T : BaseScreen, new()
+        public async Task<T> ShowModal<T>(Action<T> init = null) where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
+            init?.Invoke(screen);
 
             if (screen is Screen syncScreen)
             {
