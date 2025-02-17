@@ -1,4 +1,5 @@
 using Rayleigh.Sklo;
+using Sklo.Examples.Layers.Views;
 using Sklo.Examples.Screens;
 using UnityEngine;
 
@@ -12,14 +13,12 @@ namespace Sklo.Examples.Layers
         {
             base.OnShow();
             View.OpenSettingsPressed += OpenSettingsScreen;
-            Debug.Log("show main screen layer");
         }
 
         protected override void OnHide()
         {
             View.OpenSettingsPressed -= OpenSettingsScreen;
             base.OnHide();
-            Debug.Log("hide main screen layer");
         }
 
         private void OpenSettingsScreen() => ScreenManager.ToggleMain<SettingsScreen>();

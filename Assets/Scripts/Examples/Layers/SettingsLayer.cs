@@ -1,4 +1,5 @@
 using Rayleigh.Sklo;
+using Sklo.Examples.Layers.Views;
 using UnityEngine;
 
 namespace Sklo.Examples.Layers
@@ -11,19 +12,16 @@ namespace Sklo.Examples.Layers
         {
             base.OnShow();
             View.BackPressed += Back;
-            Debug.Log("show settings layer");
         }
 
         protected override void OnHide()
         {
             base.OnHide();
             View.BackPressed -= Back;
-            Debug.Log("hide settings layer");
         }
 
         private void Back()
         {
-            Debug.Log("back pressed");
             var result = ScreenManager.ToggleBack();
             if (result is null)
                 Debug.Log("cannot return back, the history is empty");

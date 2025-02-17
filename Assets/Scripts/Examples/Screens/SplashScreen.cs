@@ -14,17 +14,5 @@ namespace Sklo.Examples.Screens
             compositor.AddLayer<BackgroundLayer>();
             compositor.AddLayer<SplashLayer>();
         }
-
-        protected override void OnShow()
-        {
-            base.OnShow();
-            Debug.Log("Splash screen shown");
-        }
-
-        protected override void OnHide()
-        {
-            base.OnHide();
-            Debug.Log("Splash screen hidden");
-        }
     }
 }

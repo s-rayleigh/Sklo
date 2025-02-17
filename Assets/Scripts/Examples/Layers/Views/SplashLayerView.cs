@@ -3,7 +3,7 @@ using Rayleigh.Sklo;
 using TMPro;
 using UnityEngine;
 
-namespace Sklo.Examples.Layers
+namespace Sklo.Examples.Layers.Views
 {
     public class SplashLayerView : ScreenLayerView<SplashLayerView, SplashLayer>
     {
