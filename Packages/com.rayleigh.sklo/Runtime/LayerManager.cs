@@ -44,6 +44,7 @@ namespace Rayleigh.Sklo
 
             // TODO: virtual method so it can be overriden to use a pool instead.
             layer.View = Object.Instantiate(viewPrefab, parent, false);
+            layer.View.Layer = layer;
             
             return layer;
         }
