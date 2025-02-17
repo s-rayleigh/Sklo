@@ -49,6 +49,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c409a9e5b44f46748ecf3b80dd9e780d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _backgroundImage: {fileID: 5846975906154426851}
+  _mainBgColor: {r: 0.14901961, g: 0.14901961, b: 0.14901961, a: 1}
+  _modalBgColor: {r: 0, g: 0, b: 0, a: 0.92156863}
+  _overlayBgColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.41960785}
 --- !u!1 &5602542813605932013
 GameObject:
   m_ObjectHideFlags: 0

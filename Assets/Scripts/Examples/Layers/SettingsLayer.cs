@@ -1,5 +1,6 @@
 using Rayleigh.Sklo;
 using Sklo.Examples.Layers.Views;
+using Sklo.Examples.Screens;
 using UnityEngine;
 
 namespace Sklo.Examples.Layers
@@ -7,20 +8,8 @@ namespace Sklo.Examples.Layers
     public sealed class SettingsLayer : ScreenLayer<SettingsLayer, SettingsLayerView>, IScreenManagerHolderLayer
     {
         public ScreenManager ScreenManager { get; set; }
-        
-        protected override void OnShow()
-        {
-            base.OnShow();
-            View.BackPressed += Back;
-        }
 
-        protected override void OnHide()
-        {
-            base.OnHide();
-            View.BackPressed -= Back;
-        }
-
-        private void Back()
+        public void ToggleBack()
         {
             var result = ScreenManager.ToggleBack();
             if (result is null)

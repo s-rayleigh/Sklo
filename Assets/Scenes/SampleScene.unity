@@ -494,6 +494,7 @@ MonoBehaviour:
   - {fileID: 286399783381593740, guid: c1adb3e24268949c9a48adce1972b238, type: 3}
   - {fileID: 4804377720883858650, guid: 56eda0254a6b8414dbb4d7e6425eb496, type: 3}
   - {fileID: -1110032200262408505, guid: de096e7cb744247419e7aed6d302eb44, type: 3}
+  - {fileID: 3504062899335032008, guid: b96b3a37249d04c03bde52056a966227, type: 3}
   _viewsParent: {fileID: 1327419164}
 --- !u!1 &832575517
 GameObject:
