@@ -19,6 +19,11 @@ namespace Rayleigh.Sklo
 
         public virtual bool ExcludeFromHistory => false;
 
+        /// <summary>
+        /// Priority used for sorting when the screen is shown in overlay mode.
+        /// </summary>
+        public virtual short OverlayPriority => 0; 
+
         internal BaseScreen()
         {
             

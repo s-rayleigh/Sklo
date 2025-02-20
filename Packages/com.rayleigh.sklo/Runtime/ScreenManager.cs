@@ -52,19 +52,20 @@ namespace Rayleigh.Sklo
 
         #region Overlay
         
-        public void ShowOverlay<T>(Action<T> init = null) where T : Screen, new()
+        public T ShowOverlay<T>(Action<T> init = null) where T : Screen, new()
         {
-            throw new NotImplementedException();
-        }
-        
-        private void ShowOverlay(Screen screen)
-        {
-            throw new NotImplementedException();
+            var screen = new T();
+            init?.Invoke(screen);
+            ShowOverlay(screen);
+            return screen;
         }
 
-        public void HideOverlay<T>() where T : BaseScreen
+        public new void HideOverlay(BaseScreen screen) => base.HideOverlay(screen);
+
+        public void HideAllOverlay()
         {
-            throw new NotImplementedException();
+            for (var i = OverlayScreens.Count - 1; i >= 0; i--)
+                HideOverlay(OverlayScreens[i]);
         }
         
         #endregion Overlay

@@ -85,7 +85,7 @@ namespace Rayleigh.Sklo
 
         public bool ModalDisplayed => ModalScreen is not null;
         
-        public IReadOnlyCollection<BaseScreen> OverlayScreens => _overlayScreens;
+        public IReadOnlyList<BaseScreen> OverlayScreens => _overlayScreens;
 
         public event Action<BaseScreenLayer, DisplayType> BeforeLayerShow;
         
@@ -152,7 +152,6 @@ namespace Rayleigh.Sklo
 
         private void EndProcessInternal(IDisposable beginResult)
         {
-            _screenProcessBegun = false;
             _layerManager.ReleaseUnused();
             beginResult.Dispose();
         }
@@ -188,8 +187,7 @@ namespace Rayleigh.Sklo
                 throw new Exception("");
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
-            if (_screenProcessBegun)
-                throw new InvalidOperationException("Cannot begin toggle the screen because toggle is already begun.");
+            ThrowIfProcessBegun();
 
             _screenProcessBegun = true;
             result = new BeginToggleResult();
@@ -230,7 +228,11 @@ namespace Rayleigh.Sklo
             return true;
         }
 
-        protected void EndToggleMain(BeginToggleResult beginToggleResult) => EndProcessInternal(beginToggleResult);
+        protected void EndToggleMain(BeginToggleResult beginToggleResult)
+        {
+            _screenProcessBegun = false;
+            EndProcessInternal(beginToggleResult);
+        }
 
         protected void ToggleMain([MaybeNull] Screen screen)
         {
@@ -270,8 +272,7 @@ namespace Rayleigh.Sklo
                 throw new ArgumentNullException(nameof(screen));
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot show a modal screen while another is being displayed.");
-            if (_screenProcessBegun)
-                throw new InvalidOperationException("Cannot show a screen because another process is already begun.");
+            ThrowIfProcessBegun();
 
             _screenProcessBegun = true;
             ModalScreen = screen;
@@ -282,7 +283,11 @@ namespace Rayleigh.Sklo
             return result;
         }
 
-        protected void EndShowModal(BeginProcessResult beginProcessResult) => EndProcessInternal(beginProcessResult);
+        protected void EndShowModal(BeginProcessResult beginProcessResult)
+        {
+            _screenProcessBegun = false;
+            EndProcessInternal(beginProcessResult);
+        }
 
         protected void ShowModal([NotNull] Screen screen)
         {
@@ -299,9 +304,10 @@ namespace Rayleigh.Sklo
         {
             if (!ModalDisplayed)
                 throw new InvalidOperationException("Can't hide a modal screen because it isn't currently displayed.");
-            if (_screenProcessBegun)
-                throw new InvalidOperationException("Cannot hide a screen because another process is already begun.");
+            ThrowIfProcessBegun();
 
+            _screenProcessBegun = true;
+            
             var result = new BeginProcessResult(ModalScreen);
             BeginHideScreenInternal(result.Screen, result.LayersToProcess, DisplayType.Modal);
             return result;
@@ -310,6 +316,7 @@ namespace Rayleigh.Sklo
         protected void EndHideModal(BeginProcessResult beginProcessResult)
         {
             ModalScreen = null;
+            _screenProcessBegun = false;
             EndProcessInternal(beginProcessResult);
         }
 
@@ -328,27 +335,80 @@ namespace Rayleigh.Sklo
         
         #region Overlay
 
-        protected void BeginShowOverlay()
+        protected BeginProcessResult BeginShowOverlay(BaseScreen screen)
         {
-            throw new NotImplementedException();
+            if (screen is null)
+                throw new ArgumentNullException(nameof(screen));
+            if (screen.Displayed)
+                throw new InvalidOperationException("Screen is already displayed.");
+            
+            _overlayScreens.Add(screen);
+            
+            var result = new BeginProcessResult(screen);
+            BeginShowScreenInternal(screen, result.LayersToProcess, DisplayType.Overlay);
+            
+            // TODO: sorting.
+            
+            return result;
         }
 
-        protected void EndShowOverlay()
+        protected void EndShowOverlay(BeginProcessResult beginProcessResult) => EndProcessInternal(beginProcessResult);
+
+        protected void ShowOverlay(BaseScreen screen)
         {
-            throw new NotImplementedException();
+            var result = BeginShowOverlay(screen);
+            
+            ((Screen)result.Screen).NotifyShown(DisplayType.Overlay);
+            foreach (var layer in result.LayersToProcess)
+                ((ScreenLayer)layer).NotifyShown();
+            
+            EndShowOverlay(result);
         }
         
-        protected void BeginHideOverlay()
+        protected BeginProcessResult BeginHideOverlay(BaseScreen screen)
         {
-            throw new NotImplementedException();
+            if (screen is null)
+                throw new ArgumentNullException(nameof(screen));
+            if (!screen.Displayed)
+                throw new InvalidOperationException("Screen is not displayed.");
+            if (screen.DisplayType is not DisplayType.Overlay)
+                throw new InvalidOperationException("Screen is not displayed in overlay mode.");
+            var index = _overlayScreens.IndexOf(screen);
+            if (index is -1)
+                throw new InvalidOperationException("Screen is not controlled by this screen manager.");
+
+            _overlayScreens.RemoveAt(index);
+
+            var result = new BeginProcessResult(screen);
+            BeginHideScreenInternal(screen, result.LayersToProcess, DisplayType.Overlay);
+
+            return result;
         }
         
-        protected void EndHideOverlay()
+        protected void EndHideOverlay(BeginProcessResult beginProcessResult)
         {
-            // TODO: destroy object for overlay screen (or pool?).
-            throw new NotImplementedException();
+            // Destroy the parent container.
+            Destroy(beginProcessResult.Screen.ParentContainer);
+            EndProcessInternal(beginProcessResult);
+        }
+
+        protected void HideOverlay(BaseScreen screen)
+        {
+            var result = BeginHideOverlay(screen);
+            
+            ((Screen)result.Screen).NotifyHidden();
+            foreach (var layer in result.LayersToProcess)
+                ((ScreenLayer)layer).NotifyHidden();
+            
+            EndHideOverlay(result);
         }
         
         #endregion Overlay
+
+        private void ThrowIfProcessBegun()
+        {
+            if (_screenProcessBegun)
+                throw new InvalidOperationException("Cannot show a screen because another process is already begun.");
+        }
     }
 }
