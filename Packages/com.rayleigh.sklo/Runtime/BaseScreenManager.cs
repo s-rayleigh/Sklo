@@ -182,9 +182,8 @@ namespace Rayleigh.Sklo
         
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
         {
-            // TODO: text of the exception.
             if (screen is not null && screen.Displayed)
-                throw new Exception("");
+                throw new Exception("The screen is already displayed.");
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
             ThrowIfProcessBegun();
