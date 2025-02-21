@@ -147,5 +147,102 @@ namespace Rayleigh.Sklo.Tasks
         }
 
         #endregion Modal
+        
+        #region Overlay
+
+        public async Task<T> ShowOverlay<T>(Action<T> init = null) where T : BaseScreen, new()
+        {
+            ThrowIfScreenNotSupported<T>();
+            var screen = new T();
+            init?.Invoke(screen);
+
+            if (screen is Screen syncScreen)
+            {
+                ShowOverlay(syncScreen);
+                return screen;
+            }
+
+            var result = BeginShowOverlay(screen);
+            var tasks = ListPool<Task>.Get();
+
+            try
+            {
+                tasks.Add(((AsyncScreen)result.Screen).NotifyShown());
+                foreach (var layer in result.LayersToProcess)
+                    tasks.Add(((AsyncScreenLayer)layer).NotifyShown());
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                ListPool<Task>.Release(tasks);
+            }
+
+            EndShowOverlay(result);
+            return screen;
+        }
+
+        public new async Task HideOverlay(BaseScreen screen)
+        {
+            if (screen is Screen syncScreen)
+            {
+                base.HideOverlay(syncScreen);
+                return;
+            }
+
+            var result = BeginHideOverlay(screen);
+            var tasks = ListPool<Task>.Get();
+
+            try
+            {
+                tasks.Add(((AsyncScreen)result.Screen).NotifyHidden());
+                foreach (var layer in result.LayersToProcess)
+                    tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                ListPool<Task>.Release(tasks);
+            }
+
+            EndHideOverlay(result);
+        }
+
+        public async Task HideAllOverlay()
+        {
+            var tasks = ListPool<Task>.Get();
+            var results = ListPool<BeginProcessResult>.Get();
+            try
+            {
+                for (var i = OverlayScreens.Count - 1; i >= 0; i--)
+                {
+                    var screen = OverlayScreens[i];
+
+                    if (screen is Screen syncScreen)
+                    {
+                        base.HideOverlay(syncScreen);
+                        continue;
+                    }
+
+                    var result = BeginHideOverlay(screen);
+                    tasks.Add(((AsyncScreen)result.Screen).NotifyHidden());
+                    foreach (var layer in result.LayersToProcess)
+                        tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
+                    results.Add(result);
+                }
+
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                ListPool<Task>.Release(tasks);
+            }
+
+            for (var i = 0; i < results.Count; i++)
+                EndHideOverlay(results[i]);
+            
+            ListPool<BeginProcessResult>.Release(results);
+        }
+        
+        #endregion Overlay
     }
 }
