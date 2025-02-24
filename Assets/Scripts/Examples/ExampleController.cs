@@ -18,6 +18,7 @@ namespace Sklo.Examples
                 if (layer is IScreenManagerHolderLayer holder)
                     holder.ScreenManager = _screenManager;
             };
+            _screenManager.ShowOverlay<DebugScreen>();
             _screenManager.ToggleMain<SplashScreen>();
         }
 

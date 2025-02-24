@@ -1,0 +1,13 @@
+using Rayleigh.Sklo;
+using Sklo.Examples.Layers;
+
+namespace Sklo.Examples.Screens
+{
+    public sealed class DebugScreen : Screen
+    {
+        protected override void OnCompose(ScreenCompositor<ScreenLayer> compositor)
+        {
+            compositor.AddLayer<DebugScreenLayer>();
+        }
+    }
+}
