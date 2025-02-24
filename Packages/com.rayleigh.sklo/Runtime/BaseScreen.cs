@@ -7,7 +7,7 @@ namespace Rayleigh.Sklo
 {
     public abstract class BaseScreen
     {
-        internal readonly Dictionary<Type, BaseScreenLayer> Layers = new();
+        internal readonly Dictionary<Type, BaseScreenLayer> InternalLayers = new();
         
         public bool Displayed { get; protected set; }
         
@@ -22,8 +22,10 @@ namespace Rayleigh.Sklo
         /// <summary>
         /// Priority used for sorting when the screen is shown in overlay mode.
         /// </summary>
-        public virtual short OverlayPriority => 0; 
+        public virtual short OverlayPriority => 0;
 
+        public IEnumerable<BaseScreenLayer> Layers => InternalLayers.Values; 
+        
         internal BaseScreen()
         {
             
@@ -35,7 +37,7 @@ namespace Rayleigh.Sklo
         }
         
         [return: MaybeNull]
-        protected T GetLayer<T>() where T : BaseScreenLayer => (T)Layers.GetValueOrDefault(typeof(T));
+        protected T GetLayer<T>() where T : BaseScreenLayer => (T)InternalLayers.GetValueOrDefault(typeof(T));
         
         public bool SameAs([MaybeNull] BaseScreen other) => other is not null && other.GetType() == GetType();
     }
