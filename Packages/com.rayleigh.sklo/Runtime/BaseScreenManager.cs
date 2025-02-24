@@ -87,6 +87,20 @@ namespace Rayleigh.Sklo
         
         public IReadOnlyList<BaseScreen> OverlayScreens => _overlayScreens;
 
+        public IEnumerable<BaseScreen> DisplayedScreens
+        {
+            get
+            {
+                // TODO: optimize: custom enumerator.
+                if (MainScreen is not null)
+                    yield return MainScreen;
+                if (ModalScreen is not null)
+                    yield return ModalScreen;
+                foreach (var overlayScreen in OverlayScreens)
+                    yield return overlayScreen;
+            }
+        }
+        
         #region Events
         
         public event Action<BaseScreenLayer, DisplayType> BeforeLayerShow;

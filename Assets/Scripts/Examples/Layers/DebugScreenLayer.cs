@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Rayleigh.Sklo;
 using Sklo.Examples.Layers.Views;
 
@@ -14,7 +13,7 @@ namespace Sklo.Examples.Layers
             base.OnShow();
             ScreenManager.AfterScreenShow += OnScreenShow;
             ScreenManager.AfterScreenHide += OnScreenHide;
-            View.UpdateList(GetScreens());
+            View.UpdateList(ScreenManager.DisplayedScreens);
         }
 
         protected override void OnHide()
@@ -24,18 +23,10 @@ namespace Sklo.Examples.Layers
             base.OnHide();
         }
 
-        private void OnScreenShow(BaseScreen screen, DisplayType displayType) => View.UpdateList(GetScreens());
+        private void OnScreenShow(BaseScreen screen, DisplayType displayType) =>
+            View.UpdateList(ScreenManager.DisplayedScreens);
 
-        private void OnScreenHide(BaseScreen screen, DisplayType displayType) => View.UpdateList(GetScreens());
-
-        private IEnumerable<BaseScreen> GetScreens()
-        {
-            if (ScreenManager.MainScreen is not null)
-                yield return ScreenManager.MainScreen;
-            if (ScreenManager.ModalScreen is not null)
-                yield return ScreenManager.ModalScreen;
-            foreach (var overlayScreen in ScreenManager.OverlayScreens)
-                yield return overlayScreen;
-        }
+        private void OnScreenHide(BaseScreen screen, DisplayType displayType) =>
+            View.UpdateList(ScreenManager.DisplayedScreens);
     }
 }
