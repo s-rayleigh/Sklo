@@ -9,5 +9,7 @@ namespace Sklo.Examples.Screens
         {
             compositor.AddLayer<DebugScreenLayer>();
         }
+
+        public void ToggleDebugInfo() => GetLayer<DebugScreenLayer>()?.ToggleDebugInfo();
     }
 }

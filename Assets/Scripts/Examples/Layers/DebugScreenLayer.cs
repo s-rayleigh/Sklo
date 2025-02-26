@@ -28,5 +28,7 @@ namespace Sklo.Examples.Layers
 
         private void OnScreenHide(BaseScreen screen, DisplayType displayType) =>
             View.UpdateList(ScreenManager.DisplayedScreens);
+
+        public void ToggleDebugInfo() => View.ToggleContent();
     }
 }

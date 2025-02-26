@@ -9,6 +9,9 @@ namespace Sklo.Examples.Layers.Views
     public sealed class DebugScreenLayerView : ScreenLayerView<DebugScreenLayerView, DebugScreenLayer>
     {
         [SerializeField]
+        private Transform _contentContainer;
+        
+        [SerializeField]
         private DebugScreenItem _debugScreenItemPrefab;
 
         [SerializeField]
@@ -28,5 +31,7 @@ namespace Sklo.Examples.Layers.Views
                 _items.Add(item);
             }
         }
+
+        public void ToggleContent() => _contentContainer.gameObject.SetActive(!_contentContainer.gameObject.activeSelf);
     }
 }

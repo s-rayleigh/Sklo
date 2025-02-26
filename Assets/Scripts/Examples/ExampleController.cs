@@ -11,6 +11,8 @@ namespace Sklo.Examples
         [SerializeField]
         private ScreenManager _screenManager;
 
+        private DebugScreen _debugScreen;
+        
         private void Awake()
         {
             _screenManager.BeforeLayerShow += (layer, _) =>
@@ -18,7 +20,7 @@ namespace Sklo.Examples
                 if (layer is IScreenManagerHolderLayer holder)
                     holder.ScreenManager = _screenManager;
             };
-            _screenManager.ShowOverlay<DebugScreen>();
+            _debugScreen = _screenManager.ShowOverlay<DebugScreen>();
             _screenManager.ToggleMain<SplashScreen>();
         }
 
@@ -29,6 +31,9 @@ namespace Sklo.Examples
             
             if (Input.GetKeyDown(KeyCode.S))
                 _screenManager.ToggleMain<SplashScreen>();
+            
+            if (Input.GetKeyDown(KeyCode.D))
+                _debugScreen.ToggleDebugInfo();
         }
     }
 }
