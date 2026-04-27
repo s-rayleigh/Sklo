@@ -31,7 +31,8 @@ namespace Rayleigh.Sklo
             
         }
 
-        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent)
+        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent,
+            ulong opId)
         {
             ParentContainer = parent;
         }

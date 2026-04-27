@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 
 namespace Rayleigh.Sklo
@@ -8,21 +9,22 @@ namespace Rayleigh.Sklo
     internal class LayerManager
     {
         private readonly ScreenLayerView[] _layerViewPrefabs;
-        private readonly Dictionary<Type, BaseScreenLayer> _returnedLayers;
+        private readonly Dictionary<(ulong opId, Type layerType), BaseScreenLayer> _returnedLayers;
         
         public LayerManager(ScreenLayerView[] layerViewPrefabs)
         {
             _layerViewPrefabs = layerViewPrefabs;
-            _returnedLayers = new Dictionary<Type, BaseScreenLayer>();
+            _returnedLayers = new();
         }
         
-        public T Get<T>(Transform parent) where T : BaseScreenLayer, new()
+        public T Get<T>(Transform parent, ulong opId) where T : BaseScreenLayer, new()
         {
             var type = typeof(T);
             
-            if (_returnedLayers.TryGetValue(type, out var returnedLayer) && returnedLayer.Transitional)
+            // TODO: search 
+            if (_returnedLayers.TryGetValue((opId, type), out var returnedLayer) && returnedLayer.Transitional)
             {
-                _returnedLayers.Remove(type);
+                _returnedLayers.Remove((opId, type));
                 return (T)returnedLayer;
             }
             
@@ -49,13 +51,22 @@ namespace Rayleigh.Sklo
             return layer;
         }
 
-        public void Return(BaseScreenLayer layer) => _returnedLayers.Add(layer.GetType(), layer);
+        public void Return(BaseScreenLayer layer, ulong opId) => _returnedLayers.Add((opId, layer.GetType()), layer);
 
-        public void ReleaseUnused()
+        public void ReleaseUnused(ulong opId)
         {
-            foreach (var layer in _returnedLayers.Values)
+            using var _ = ListPool<(ulong, Type)>.Get(out var toRemove);
+            
+            foreach (var ((layerOpId, layerType), layer) in _returnedLayers)
+            {
+                if (layerOpId != opId)
+                    continue;
                 ReleaseLayer(layer);
-            _returnedLayers.Clear();
+                toRemove.Add((layerOpId, layerType));
+            }
+
+            for (var i = 0; i < toRemove.Count; i++)
+                _returnedLayers.Remove(toRemove[i]);
         }
 
         protected virtual void ReleaseLayer(BaseScreenLayer layer)
