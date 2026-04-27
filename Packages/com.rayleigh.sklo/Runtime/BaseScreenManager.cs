@@ -202,10 +202,18 @@ namespace Rayleigh.Sklo
         
         private void EndProcessInternal(IDisposable beginResult)
         {
-            if (beginResult is BeginToggleResult { ScreenToHide: not null } beginToggleResult)
-                beginToggleResult.ScreenToHide.ParentContainer = null;
-            else if (beginResult is BeginProcessResult { Hiding: true } beginProcessResult)
-                beginProcessResult.Screen.ParentContainer = null;
+            var screenToHide = beginResult switch
+            {
+                BeginToggleResult beginToggleResult => beginToggleResult.ScreenToHide,
+                BeginProcessResult { Hiding: true } beginProcessResult => beginProcessResult.Screen,
+                _ => null
+            };
+
+            if (screenToHide is not null)
+            {
+                screenToHide.ParentContainer = null;
+                screenToHide.DisplayType = DisplayType.None;
+            }
             
             _layerManager.ReleaseUnused();
             beginResult.Dispose();
@@ -435,7 +443,7 @@ namespace Rayleigh.Sklo
             if (beginProcessResult.Screen is not null)
                 AfterScreenHide?.Invoke(beginProcessResult.Screen, DisplayType.Overlay);
             // Destroy the parent container.
-            Destroy(beginProcessResult.Screen.ParentContainer.gameObject);
+            Destroy(beginProcessResult.Screen!.ParentContainer.gameObject);
             
             EndProcessInternal(beginProcessResult);
         }
