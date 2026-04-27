@@ -2,10 +2,9 @@ namespace Rayleigh.Sklo
 {
     public abstract class Screen : BaseScreen<ScreenLayer>
     {
-        internal void NotifyShown(DisplayType displayType)
+        internal void NotifyShown()
         {
             Displayed = true;
-            DisplayType = displayType;
             OnShow();
         }
 
@@ -16,7 +15,6 @@ namespace Rayleigh.Sklo
         internal void NotifyHidden()
         {
             Displayed = false;
-            DisplayType = DisplayType.None;
             OnHide();
         }
 

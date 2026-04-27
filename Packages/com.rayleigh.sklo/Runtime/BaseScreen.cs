@@ -11,7 +11,7 @@ namespace Rayleigh.Sklo
         
         public bool Displayed { get; protected set; }
         
-        public DisplayType DisplayType { get; protected set; }
+        public DisplayType DisplayType { get; internal set; }
         
         public Transform ParentContainer { get; internal set; }
         

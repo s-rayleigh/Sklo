@@ -47,19 +47,23 @@ namespace Rayleigh.Sklo
 
         protected readonly struct BeginProcessResult : IDisposable
         {
-            private readonly BaseScreen _screen;
-            private readonly HashSet<BaseScreenLayer> _layersToProcess;
+            public BaseScreen Screen { get; }
+            
+            public HashSet<BaseScreenLayer> LayersToProcess { get; }
 
-            public BaseScreen Screen => _screen;
-            public HashSet<BaseScreenLayer> LayersToProcess => _layersToProcess;
+            /// <summary>
+            /// Indicates whether the current process involves hiding a screen.
+            /// </summary>
+            public bool Hiding { get; }
 
-            public BeginProcessResult(BaseScreen screen)
+            public BeginProcessResult(BaseScreen screen, bool hiding)
             {
-                _screen = screen;
-                _layersToProcess = HashSetPool<BaseScreenLayer>.Get();
+                Screen = screen;
+                LayersToProcess = HashSetPool<BaseScreenLayer>.Get();
+                Hiding = hiding;
             }
 
-            public void Dispose() => HashSetPool<BaseScreenLayer>.Release(_layersToProcess);
+            public void Dispose() => HashSetPool<BaseScreenLayer>.Release(LayersToProcess);
         }
         
         [SerializeField]
@@ -131,7 +135,7 @@ namespace Rayleigh.Sklo
 
         private static RectTransform CreateScreenParentObj(string name, Transform parent)
         {
-            var rectTransform = new GameObject(name).AddComponent<RectTransform>();
+            var rectTransform = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
             rectTransform.SetParent(parent, false);
             rectTransform.anchorMin = Vector2.zero;
             rectTransform.anchorMax = Vector2.one;
@@ -151,6 +155,8 @@ namespace Rayleigh.Sklo
         private void BeginShowScreenInternal(BaseScreen screen, HashSet<BaseScreenLayer> layersToShow,
             DisplayType displayType)
         {
+            screen.DisplayType = displayType;
+            
             var parentObj = GetParentObj(displayType);
             if (displayType is DisplayType.Overlay)
                 parentObj = CreateScreenParentObj(screen.GetType().Name, parentObj);
@@ -172,12 +178,6 @@ namespace Rayleigh.Sklo
             BeforeScreenShow?.Invoke(screen, displayType);
         }
 
-        private void EndProcessInternal(IDisposable beginResult)
-        {
-            _layerManager.ReleaseUnused();
-            beginResult.Dispose();
-        }
-
         private void BeginHideScreenInternal(BaseScreen screen, HashSet<BaseScreenLayer> layersToHide,
             DisplayType displayType)
         {
@@ -188,8 +188,8 @@ namespace Rayleigh.Sklo
                 // Add the layer to the list of layers to hide.
                 layersToHide.Add(layer);
             }
+            
             screen.InternalLayers.Clear();
-            screen.ParentContainer = null;
 
             if (BeforeLayerHide is not null)
             {
@@ -198,6 +198,17 @@ namespace Rayleigh.Sklo
             }
 
             BeforeScreenHide?.Invoke(screen, displayType);
+        }
+        
+        private void EndProcessInternal(IDisposable beginResult)
+        {
+            if (beginResult is BeginToggleResult { ScreenToHide: not null } beginToggleResult)
+                beginToggleResult.ScreenToHide.ParentContainer = null;
+            else if (beginResult is BeginProcessResult { Hiding: true } beginProcessResult)
+                beginProcessResult.Screen.ParentContainer = null;
+            
+            _layerManager.ReleaseUnused();
+            beginResult.Dispose();
         }
         
         #region Main
@@ -265,7 +276,7 @@ namespace Rayleigh.Sklo
                 return;
             
             ((Screen)result.ScreenToHide)?.NotifyHidden();
-            ((Screen)result.ScreenToShow)?.NotifyShown(DisplayType.Main);
+            ((Screen)result.ScreenToShow)?.NotifyShown();
             
             // TODO: optimize.
             var transitionalLayers = result.GetTransitionalLayers();
@@ -302,7 +313,7 @@ namespace Rayleigh.Sklo
             _screenProcessBegun = true;
             ModalScreen = screen;
             
-            var result = new BeginProcessResult(screen);
+            var result = new BeginProcessResult(screen, false);
             BeginShowScreenInternal(screen, result.LayersToProcess, DisplayType.Modal);
             
             return result;
@@ -320,7 +331,7 @@ namespace Rayleigh.Sklo
         {
             var result = BeginShowModal(screen);
             
-            ((Screen)result.Screen).NotifyShown(DisplayType.Modal);
+            ((Screen)result.Screen).NotifyShown();
             foreach (var layer in result.LayersToProcess)
                 ((ScreenLayer)layer).NotifyShown();
             
@@ -335,7 +346,7 @@ namespace Rayleigh.Sklo
 
             _screenProcessBegun = true;
             
-            var result = new BeginProcessResult(ModalScreen);
+            var result = new BeginProcessResult(ModalScreen, true);
             BeginHideScreenInternal(result.Screen, result.LayersToProcess, DisplayType.Modal);
             return result;
         }
@@ -373,7 +384,7 @@ namespace Rayleigh.Sklo
             
             _overlayScreens.Add(screen);
             
-            var result = new BeginProcessResult(screen);
+            var result = new BeginProcessResult(screen, false);
             BeginShowScreenInternal(screen, result.LayersToProcess, DisplayType.Overlay);
             
             // TODO: sorting.
@@ -392,7 +403,7 @@ namespace Rayleigh.Sklo
         {
             var result = BeginShowOverlay(screen);
             
-            ((Screen)result.Screen).NotifyShown(DisplayType.Overlay);
+            ((Screen)result.Screen).NotifyShown();
             foreach (var layer in result.LayersToProcess)
                 ((ScreenLayer)layer).NotifyShown();
             
@@ -413,7 +424,7 @@ namespace Rayleigh.Sklo
 
             _overlayScreens.RemoveAt(index);
 
-            var result = new BeginProcessResult(screen);
+            var result = new BeginProcessResult(screen, true);
             BeginHideScreenInternal(screen, result.LayersToProcess, DisplayType.Overlay);
 
             return result;
@@ -425,6 +436,7 @@ namespace Rayleigh.Sklo
                 AfterScreenHide?.Invoke(beginProcessResult.Screen, DisplayType.Overlay);
             // Destroy the parent container.
             Destroy(beginProcessResult.Screen.ParentContainer.gameObject);
+            
             EndProcessInternal(beginProcessResult);
         }
 
