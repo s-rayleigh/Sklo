@@ -16,7 +16,7 @@ namespace Rayleigh.Sklo
         {
             unchecked
             {
-                return _lastOperationId + 1u;
+                return _lastOperationId += 1u;
             }
         }
 
