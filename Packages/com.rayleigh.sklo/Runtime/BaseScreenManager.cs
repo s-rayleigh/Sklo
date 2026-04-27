@@ -424,7 +424,7 @@ namespace Rayleigh.Sklo
             if (beginProcessResult.Screen is not null)
                 AfterScreenHide?.Invoke(beginProcessResult.Screen, DisplayType.Overlay);
             // Destroy the parent container.
-            Destroy(beginProcessResult.Screen.ParentContainer);
+            Destroy(beginProcessResult.Screen.ParentContainer.gameObject);
             EndProcessInternal(beginProcessResult);
         }
 

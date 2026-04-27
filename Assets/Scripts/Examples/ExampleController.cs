@@ -12,6 +12,7 @@ namespace Sklo.Examples
         private ScreenManager _screenManager;
 
         private DebugScreen _debugScreen;
+        private TestOverlayScreen _testOverlayScreen;
         
         private void Awake()
         {
@@ -34,6 +35,19 @@ namespace Sklo.Examples
             
             if (Input.GetKeyDown(KeyCode.D))
                 _debugScreen.ToggleDebugInfo();
+
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                if (_testOverlayScreen is null)
+                {
+                    _testOverlayScreen = _screenManager.ShowOverlay<TestOverlayScreen>();
+                }
+                else
+                {
+                    _screenManager.HideOverlay(_testOverlayScreen);
+                    _testOverlayScreen = null;
+                }
+            }
         }
     }
 }
