@@ -1,4 +1,4 @@
-using Rayleigh.Sklo;
+using Rayleigh.Sklo.LayerViews;
 
 namespace Sklo.Examples.Layers.Views
 {

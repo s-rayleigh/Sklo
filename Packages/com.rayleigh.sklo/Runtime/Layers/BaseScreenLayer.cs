@@ -1,6 +1,7 @@
 using System;
+using Rayleigh.Sklo.LayerViews;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.Layers
 {
     public abstract class BaseScreenLayer
     {

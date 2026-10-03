@@ -1,4 +1,5 @@
 using Rayleigh.Sklo;
+using Rayleigh.Sklo.Layers;
 using Sklo.Examples.Layers.Views;
 using Sklo.Examples.Screens;
 

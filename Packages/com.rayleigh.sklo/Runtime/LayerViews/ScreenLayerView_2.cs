@@ -1,12 +1,7 @@
-using UnityEngine;
+using Rayleigh.Sklo.Layers;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.LayerViews
 {
-    public abstract class ScreenLayerView : MonoBehaviour
-    {
-        public BaseScreenLayer Layer { get; internal set; }
-    }
-    
     public abstract class ScreenLayerView<TView, TLayer> : ScreenLayerView
         where TView : ScreenLayerView<TView, TLayer>
         where TLayer : BaseScreenLayer, new()

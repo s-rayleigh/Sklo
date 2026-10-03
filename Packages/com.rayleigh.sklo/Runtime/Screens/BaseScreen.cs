@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Rayleigh.Sklo.Layers;
 using UnityEngine;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.Screens
 {
     public abstract class BaseScreen
     {
@@ -28,7 +29,6 @@ namespace Rayleigh.Sklo
         
         internal BaseScreen()
         {
-            
         }
 
         internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent,
@@ -40,6 +40,7 @@ namespace Rayleigh.Sklo
         [return: MaybeNull]
         protected T GetLayer<T>() where T : BaseScreenLayer => (T)InternalLayers.GetValueOrDefault(typeof(T));
         
+        // TODO: implement "equals" interface?
         public bool SameAs([MaybeNull] BaseScreen other) => other is not null && other.GetType() == GetType();
     }
 }

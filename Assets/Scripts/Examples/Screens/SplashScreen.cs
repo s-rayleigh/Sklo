@@ -1,7 +1,7 @@
 using Rayleigh.Sklo;
+using Rayleigh.Sklo.Layers;
+using Rayleigh.Sklo.Screens;
 using Sklo.Examples.Layers;
-using UnityEngine;
-using Screen = Rayleigh.Sklo.Screen;
 
 namespace Sklo.Examples.Screens
 {

@@ -1,9 +1,8 @@
 using System;
-using UnityEngine;
+using Rayleigh.Sklo.Screens;
 
 namespace Rayleigh.Sklo
 {
-    [DisallowMultipleComponent]
     public abstract class BaseAsyncScreenManager<TScreen> : BaseScreenManager
         where TScreen : BaseScreen
     {

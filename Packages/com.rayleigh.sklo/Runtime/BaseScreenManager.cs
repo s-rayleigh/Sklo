@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Rayleigh.Sklo.Layers;
+using Rayleigh.Sklo.LayerViews;
+using Rayleigh.Sklo.Screens;
 using UnityEngine;
 using UnityEngine.Pool;
+using Screen = Rayleigh.Sklo.Screens.Screen;
 
 namespace Rayleigh.Sklo
 {
@@ -251,7 +255,7 @@ namespace Rayleigh.Sklo
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
         {
             if (screen is not null && screen.Displayed)
-                throw new Exception("The screen is already displayed.");
+                throw new InvalidOperationException("The screen is already displayed.");
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
             ThrowIfProcessBegun();

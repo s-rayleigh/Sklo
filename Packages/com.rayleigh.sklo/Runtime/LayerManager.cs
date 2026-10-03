@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Rayleigh.Sklo.Layers;
+using Rayleigh.Sklo.LayerViews;
 using UnityEngine;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
@@ -42,7 +44,7 @@ namespace Rayleigh.Sklo
             }
             
             if (viewPrefab is null)
-                throw new Exception($"No view prefab found for a layer of type {typeof(T).Name}");
+                throw new KeyNotFoundException($"No view prefab found for a layer of type {typeof(T).Name}");
 
             // TODO: virtual method so it can be overriden to use a pool instead.
             layer.View = Object.Instantiate(viewPrefab, parent, false);

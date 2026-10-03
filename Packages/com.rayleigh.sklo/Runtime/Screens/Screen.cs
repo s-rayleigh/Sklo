@@ -1,4 +1,6 @@
-namespace Rayleigh.Sklo
+using Rayleigh.Sklo.Layers;
+
+namespace Rayleigh.Sklo.Screens
 {
     public abstract class Screen : BaseScreen<ScreenLayer>
     {
