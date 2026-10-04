@@ -9,9 +9,9 @@ namespace Rayleigh.Sklo
         private readonly ulong _opId;
         private readonly LayerManager _layerManager;
         private readonly HashSet<BaseScreenLayer> _layers;
-        private readonly Transform _parent;
+        private readonly RectTransform _parent;
 
-        internal ScreenCompositor(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent,
+        internal ScreenCompositor(LayerManager layerManager, HashSet<BaseScreenLayer> layers, RectTransform parent,
             ulong opId)
         {
             _opId = opId;
@@ -20,9 +20,9 @@ namespace Rayleigh.Sklo
             _parent = parent;
         }
         
-        public void AddLayer<T>() where T : TLayer, new()
+        public void AddLayer<T>(object key = null) where T : TLayer, new()
         {
-            var layer = _layerManager.Get<T>(_parent, _opId);
+            var layer = _layerManager.Get<T>(key, _opId, _parent);
             _layers.Add(layer);
         }
     }

@@ -14,7 +14,7 @@ namespace Rayleigh.Sklo.Screens
         
         public DisplayType DisplayType { get; internal set; }
         
-        public Transform ParentContainer { get; internal set; }
+        public RectTransform ParentContainer { get; internal set; }
         
         public bool Destroyed { get; private set; }
 
@@ -31,7 +31,7 @@ namespace Rayleigh.Sklo.Screens
         {
         }
 
-        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, Transform parent,
+        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, RectTransform parent,
             ulong opId)
         {
             ParentContainer = parent;
