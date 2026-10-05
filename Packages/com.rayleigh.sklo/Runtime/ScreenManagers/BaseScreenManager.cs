@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Rayleigh.Sklo.Layers;
-using Rayleigh.Sklo.LayerViews;
+using Rayleigh.Sklo.LayerViews.Providers;
 using Rayleigh.Sklo.Screens;
 using UnityEngine;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
 using Screen = Rayleigh.Sklo.Screens.Screen;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.ScreenManagers
 {
     public abstract class BaseScreenManager : IDisposable
     {

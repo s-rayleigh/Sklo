@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Rayleigh.Sklo.LayerViews
+namespace Rayleigh.Sklo.LayerViews.Providers
 {
     /// <summary>
     /// Provides methods for retrieving and releasing instances of <see cref="ScreenLayerView"/>.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Rayleigh.Sklo.Extensions;
 using Rayleigh.Sklo.Layers;
 using Rayleigh.Sklo.LayerViews;
+using Rayleigh.Sklo.LayerViews.Providers;
 using UnityEngine;
 
 namespace Rayleigh.Sklo
@@ -90,11 +91,14 @@ namespace Rayleigh.Sklo
         protected virtual void ReleaseLayer(BaseScreenLayer layer)
         {
             _viewProvider.Release(layer.View);
-            
-            var viewTransform = layer.View.transform;
-            if (viewTransform.parent is not null)
-                viewTransform.SetParent(null);
-            
+
+            if (layer.View)
+            {
+                var viewTransform = layer.View.transform;
+                if (viewTransform.parent is not null)
+                    viewTransform.SetParent(null);
+            }
+
             layer.View = null;
             layer.Key = null;
         }

@@ -1,10 +1,10 @@
 using System;
-using Rayleigh.Sklo.LayerViews;
+using Rayleigh.Sklo.LayerViews.Providers;
 using Rayleigh.Sklo.Screens;
 using UnityEngine;
 using Screen = Rayleigh.Sklo.Screens.Screen;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.ScreenManagers
 {
     public class ScreenManager : BaseScreenManager
     {
