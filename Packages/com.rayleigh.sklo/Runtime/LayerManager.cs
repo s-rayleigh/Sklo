@@ -109,10 +109,8 @@ namespace Rayleigh.Sklo
                 
                 if (!returnedLayer.Layer.Transitional)
                     continue;
-                
-                var keyEquals = returnedLayer.Key is null && key is null ||
-                                returnedLayer.Key is not null && returnedLayer.Key.Equals(key);
 
+                var keyEquals = EqualityComparer<object>.Default.Equals(returnedLayer.Key, key);
                 if (returnedLayer.Layer.GetType() != layerType || !keyEquals || returnedLayer.OperationId != opId)
                     continue;
                 
