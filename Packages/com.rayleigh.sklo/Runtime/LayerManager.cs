@@ -78,13 +78,18 @@ namespace Rayleigh.Sklo
 
         public void ReleaseUnused(ulong opId)
         {
-            for (var i = 0; i < _returnedLayers.Count; i++)
+            for (var i = 0; i < _returnedLayers.Count;)
             {
                 var returnedLayer = _returnedLayers[i];
-                if (returnedLayer.OperationId != opId)
-                    continue;
-                ReleaseLayer(returnedLayer.Layer);
-                _returnedLayers.RemoveAtSwapBack(i);
+                if (returnedLayer.OperationId == opId)
+                {
+                    ReleaseLayer(returnedLayer.Layer);
+                    _returnedLayers.RemoveAtSwapBack(i);
+                }
+                else
+                {
+                    i++;
+                }
             }
         }
 
