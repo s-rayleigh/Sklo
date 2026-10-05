@@ -11,13 +11,13 @@ namespace Rayleigh.Sklo.ScreenManagers.Hosts
         
         public T Manager { get; private set; }
         
-        private void Reset()
+        protected virtual void Reset()
         {
             if (!TryGetComponent<ILayerViewProvider>(out _))
                 gameObject.AddComponent<DefaultLayerViewProvider>();
         }
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (!TryGetComponent(out ILayerViewProvider provider))
                 throw new InvalidOperationException("Layer view provider must be present on the same object.");
@@ -28,6 +28,5 @@ namespace Rayleigh.Sklo.ScreenManagers.Hosts
         }
         
         protected abstract T CreateManager(ILayerViewProvider viewProvider, RectTransform viewsParent);
-
     }
 }
