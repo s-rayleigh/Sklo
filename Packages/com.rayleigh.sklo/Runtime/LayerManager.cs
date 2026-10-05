@@ -95,15 +95,8 @@ namespace Rayleigh.Sklo
 
         protected virtual void ReleaseLayer(BaseScreenLayer layer)
         {
+            layer.View.Layer = null;
             _viewProvider.Release(layer.View);
-
-            if (layer.View)
-            {
-                var viewTransform = layer.View.transform;
-                if (viewTransform.parent is not null)
-                    viewTransform.SetParent(null);
-            }
-
             layer.View = null;
             layer.Key = null;
         }
