@@ -1,3 +1,5 @@
 {
-	"name": "com.rayleigh.sklo"
+	"name": "Rayleigh.Sklo",
+    "rootNamespace": "Rayleigh.Sklo",
+    "autoReferenced": true
 }

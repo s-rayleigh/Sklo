@@ -1,0 +1,5 @@
+{
+    "name": "Rayleigh.Sklo.Async.Tasks",
+    "rootNamespace": "Rayleigh.Sklo.Async.Tasks",
+    "references": ["Rayleigh.Sklo"]
+}
