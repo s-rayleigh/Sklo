@@ -1,13 +1,20 @@
 using System;
+using Rayleigh.Sklo.LayerViews.Providers;
+using Rayleigh.Sklo.Screens;
 using UnityEngine;
+using Screen = Rayleigh.Sklo.Screens.Screen;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.ScreenManagers
 {
-    [DisallowMultipleComponent]
     public class ScreenManager : BaseScreenManager
     {
+        public ScreenManager(ILayerViewProvider layerViewProvider, RectTransform viewsParent)
+            : base(layerViewProvider, viewsParent)
+        {
+        }
+
         #region Main
-        
+
         public T ToggleMain<T>(Action<T> init = null) where T : Screen, new()
         {
             var screen = new T();

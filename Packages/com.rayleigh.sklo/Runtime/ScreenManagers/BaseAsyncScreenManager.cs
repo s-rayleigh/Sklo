@@ -1,12 +1,19 @@
 using System;
+using Rayleigh.Sklo.LayerViews.Providers;
+using Rayleigh.Sklo.Screens;
 using UnityEngine;
+using Screen = Rayleigh.Sklo.Screens.Screen;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.ScreenManagers
 {
-    [DisallowMultipleComponent]
     public abstract class BaseAsyncScreenManager<TScreen> : BaseScreenManager
         where TScreen : BaseScreen
     {
+        protected BaseAsyncScreenManager(ILayerViewProvider layerViewProvider, RectTransform viewsParent)
+            : base(layerViewProvider, viewsParent)
+        {
+        }
+
         protected bool CheckScreenSupported<T>() where T : BaseScreen
         {
             var type = typeof(T);

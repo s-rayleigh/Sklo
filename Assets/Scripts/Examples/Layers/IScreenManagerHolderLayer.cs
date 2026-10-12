@@ -1,4 +1,4 @@
-using Rayleigh.Sklo;
+using Rayleigh.Sklo.ScreenManagers;
 
 namespace Sklo.Examples.Layers
 {

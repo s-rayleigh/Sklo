@@ -1,4 +1,6 @@
 using Rayleigh.Sklo;
+using Rayleigh.Sklo.Layers;
+using Rayleigh.Sklo.Screens;
 using Sklo.Examples.Layers;
 
 namespace Sklo.Examples.Screens

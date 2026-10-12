@@ -1,4 +1,5 @@
-using Rayleigh.Sklo;
+using Rayleigh.Sklo.ScreenManagers;
+using Rayleigh.Sklo.ScreenManagers.Hosts;
 using Sklo.Examples.Layers;
 using Sklo.Examples.Screens;
 using UnityEngine;
@@ -9,29 +10,31 @@ namespace Sklo.Examples
     public sealed class ExampleController : MonoBehaviour
     {
         [SerializeField]
-        private ScreenManager _screenManager;
+        private ScreenManagerHost _screenManagerHost;
 
         private DebugScreen _debugScreen;
         private TestOverlayScreen _testOverlayScreen;
+
+        private ScreenManager ScreenManager => _screenManagerHost.Manager;
         
         private void Awake()
         {
-            _screenManager.BeforeLayerShow += (layer, _) =>
+            ScreenManager.BeforeLayerShow += (layer, _) =>
             {
                 if (layer is IScreenManagerHolderLayer holder)
-                    holder.ScreenManager = _screenManager;
+                    holder.ScreenManager = ScreenManager;
             };
-            _debugScreen = _screenManager.ShowOverlay<DebugScreen>();
-            _screenManager.ToggleMain<SplashScreen>();
+            _debugScreen = ScreenManager.ShowOverlay<DebugScreen>();
+            ScreenManager.ToggleMain<SplashScreen>();
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.H) && _screenManager.MainDisplayed)
-                _screenManager.HideMain();
+            if (Input.GetKeyDown(KeyCode.H) && ScreenManager.MainDisplayed)
+                ScreenManager.HideMain();
             
             if (Input.GetKeyDown(KeyCode.S))
-                _screenManager.ToggleMain<SplashScreen>();
+                ScreenManager.ToggleMain<SplashScreen>();
             
             if (Input.GetKeyDown(KeyCode.D))
                 _debugScreen.ToggleDebugInfo();
@@ -40,11 +43,11 @@ namespace Sklo.Examples
             {
                 if (_testOverlayScreen is null)
                 {
-                    _testOverlayScreen = _screenManager.ShowOverlay<TestOverlayScreen>();
+                    _testOverlayScreen = ScreenManager.ShowOverlay<TestOverlayScreen>();
                 }
                 else
                 {
-                    _screenManager.HideOverlay(_testOverlayScreen);
+                    ScreenManager.HideOverlay(_testOverlayScreen);
                     _testOverlayScreen = null;
                 }
             }

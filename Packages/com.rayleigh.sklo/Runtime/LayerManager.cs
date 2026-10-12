@@ -1,78 +1,128 @@
 using System;
 using System.Collections.Generic;
+using Rayleigh.Sklo.Extensions;
+using Rayleigh.Sklo.Layers;
+using Rayleigh.Sklo.LayerViews;
+using Rayleigh.Sklo.LayerViews.Providers;
 using UnityEngine;
-using UnityEngine.Pool;
-using Object = UnityEngine.Object;
 
 namespace Rayleigh.Sklo
 {
     internal class LayerManager
     {
-        private readonly ScreenLayerView[] _layerViewPrefabs;
-        private readonly Dictionary<(ulong opId, Type layerType), BaseScreenLayer> _returnedLayers;
-        
-        public LayerManager(ScreenLayerView[] layerViewPrefabs)
+        private readonly struct ReturnedLayer
         {
-            _layerViewPrefabs = layerViewPrefabs;
-            _returnedLayers = new();
+            public readonly BaseScreenLayer Layer;
+            public readonly object Key;
+            public readonly ulong OperationId;
+            
+            public ReturnedLayer(BaseScreenLayer layer, object key, ulong operationId)
+            {
+                Layer = layer;
+                OperationId = operationId;
+                Key = key;
+            }
         }
         
-        public T Get<T>(Transform parent, ulong opId) where T : BaseScreenLayer, new()
+        private readonly ILayerViewProvider _viewProvider;
+        private readonly List<ReturnedLayer> _returnedLayers;
+        
+        public LayerManager(ILayerViewProvider viewProvider)
         {
-            var type = typeof(T);
+            _viewProvider = viewProvider;
+            _returnedLayers = new List<ReturnedLayer>();
+        }
+        
+        public BaseScreenLayer Get<T>(object key, ulong opId, RectTransform parent) where T : BaseScreenLayer, new()
+        {
+            var layerType = typeof(T);
+            if (TryConsumeTransitionalLayer(layerType, key, opId, out var layer))
+                return layer;
             
-            // TODO: search 
-            if (_returnedLayers.TryGetValue((opId, type), out var returnedLayer) && returnedLayer.Transitional)
-            {
-                _returnedLayers.Remove((opId, type));
-                return (T)returnedLayer;
-            }
+            layer = new T();
+            layer.Key = key;
             
-            var layer = new T();
             var viewType = layer.ViewType;
-            ScreenLayerView viewPrefab = null;
+            var view = _viewProvider.Get(new LayerViewRequest(viewType, key), parent);
             
-            for (var i = 0; i < _layerViewPrefabs.Length; i++)
+            if (view is null)
             {
-                var item = _layerViewPrefabs[i];
-                if (item.GetType() != viewType)
-                    continue;
-                viewPrefab = item;
-                break;
+                throw new KeyNotFoundException(
+                    $"No view of type '{viewType.Name}' found for a layer type '{typeof(T).Name}' and key '{key}'.");
             }
             
-            if (viewPrefab is null)
-                throw new Exception($"No view prefab found for a layer of type {typeof(T).Name}");
+            if (!viewType.IsInstanceOfType(view))
+            {
+                throw new InvalidOperationException($"Layer view provider returned view type '{view.GetType().Name}'" +
+                                                    $" instead of requested '{viewType.Name} type.");
+            }
 
-            // TODO: virtual method so it can be overriden to use a pool instead.
-            layer.View = Object.Instantiate(viewPrefab, parent, false);
-            layer.View.Layer = layer;
+            var viewTransform = view.transform;
+            
+            // Set the parent if provider ignored the "parent" argument.
+            if (viewTransform.parent != parent)
+                viewTransform.SetParent(parent, false);
+            
+            // Useful if the implemented pooling does not re-parent the object.
+            viewTransform.SetAsLastSibling();
+            
+            // Cross-link the layer and view.
+            layer.View = view;
+            view.Layer = layer;
             
             return layer;
         }
 
-        public void Return(BaseScreenLayer layer, ulong opId) => _returnedLayers.Add((opId, layer.GetType()), layer);
+        public void Return(BaseScreenLayer layer, ulong opId) =>
+            _returnedLayers.Add(new ReturnedLayer(layer, layer.Key, opId));
 
         public void ReleaseUnused(ulong opId)
         {
-            using var _ = ListPool<(ulong, Type)>.Get(out var toRemove);
-            
-            foreach (var ((layerOpId, layerType), layer) in _returnedLayers)
+            for (var i = 0; i < _returnedLayers.Count;)
             {
-                if (layerOpId != opId)
-                    continue;
-                ReleaseLayer(layer);
-                toRemove.Add((layerOpId, layerType));
+                var returnedLayer = _returnedLayers[i];
+                if (returnedLayer.OperationId == opId)
+                {
+                    ReleaseLayer(returnedLayer.Layer);
+                    _returnedLayers.RemoveAtSwapBack(i);
+                }
+                else
+                {
+                    i++;
+                }
             }
-
-            for (var i = 0; i < toRemove.Count; i++)
-                _returnedLayers.Remove(toRemove[i]);
         }
 
         protected virtual void ReleaseLayer(BaseScreenLayer layer)
         {
-            Object.Destroy(layer.View.gameObject);
+            layer.View.Layer = null;
+            _viewProvider.Release(layer.View);
             layer.View = null;
+            layer.Key = null;
+        }
+
+        private bool TryConsumeTransitionalLayer(Type layerType, object key, ulong opId, out BaseScreenLayer layer)
+        {
+            for (var i = 0; i < _returnedLayers.Count; i++)
+            {
+                var returnedLayer = _returnedLayers[i];
+                
+                if (!returnedLayer.Layer.Transitional)
+                    continue;
+
+                var keyEquals = EqualityComparer<object>.Default.Equals(returnedLayer.Key, key);
+                if (returnedLayer.Layer.GetType() != layerType || !keyEquals || returnedLayer.OperationId != opId)
+                    continue;
+                
+                // "Consume" the layer.
+                _returnedLayers.RemoveAtSwapBack(i);
+                
+                layer = returnedLayer.Layer;
+                return true;
+            }
+            
+            layer = null;
+            return false;
         }
     }
 }

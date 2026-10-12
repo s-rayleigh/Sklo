@@ -1,13 +1,24 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Rayleigh.Sklo.LayerViews.Providers;
+using Rayleigh.Sklo.ScreenManagers;
+using Rayleigh.Sklo.Screens;
+using UnityEngine;
 using UnityEngine.Pool;
+using Screen = Rayleigh.Sklo.Screens.Screen;
 
 namespace Rayleigh.Sklo.Tasks
 {
     public sealed class AsyncScreenManager : BaseAsyncScreenManager<AsyncScreen>
     {
+        public AsyncScreenManager(ILayerViewProvider layerViewProvider, RectTransform viewsParent)
+            : base(layerViewProvider, viewsParent)
+        {
+        }
+        
         #region Main
+
         public async Task<T> ToggleMain<T>(Action<T> init = null) where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();

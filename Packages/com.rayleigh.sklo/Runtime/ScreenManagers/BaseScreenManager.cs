@@ -2,13 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Rayleigh.Sklo.Layers;
+using Rayleigh.Sklo.LayerViews.Providers;
+using Rayleigh.Sklo.Screens;
 using UnityEngine;
 using UnityEngine.Pool;
+using Object = UnityEngine.Object;
+using Screen = Rayleigh.Sklo.Screens.Screen;
 
-namespace Rayleigh.Sklo
+namespace Rayleigh.Sklo.ScreenManagers
 {
-    [DisallowMultipleComponent]
-    public abstract class BaseScreenManager : MonoBehaviour
+    public abstract class BaseScreenManager : IDisposable
     {
         private static ulong _lastOperationId;
 
@@ -92,20 +96,15 @@ namespace Rayleigh.Sklo
 
             public void Dispose() => HashSetPool<BaseScreenLayer>.Release(LayersToProcess);
         }
+
+        private readonly LayerManager _layerManager;
+        private readonly Stack<BaseScreen> _historyStack;
+        private readonly List<BaseScreen> _overlayScreens;
+        private readonly RectTransform _mainParent;
+        private readonly RectTransform _modalParent;
+        private readonly RectTransform _overlayParent;
         
-        [SerializeField]
-        private ScreenLayerView[] _screenLayers;
-
-        [SerializeField]
-        private Transform _viewsParent;
-
-        private LayerManager _layerManager;
-        private Stack<BaseScreen> _historyStack;
-        private List<BaseScreen> _overlayScreens;
         private bool _screenProcessBegun;
-        private Transform _mainParent;
-        private Transform _modalParent;
-        private Transform _overlayParent;
         
         [MaybeNull]
         public BaseScreen MainScreen { get; private set; }
@@ -147,17 +146,21 @@ namespace Rayleigh.Sklo
         public event Action<BaseScreen, DisplayType> AfterScreenHide; 
         
         #endregion Events
-        
-        protected virtual void Awake()
+
+        public BaseScreenManager(ILayerViewProvider layerViewProvider, RectTransform viewsParent)
         {
-            _layerManager = new LayerManager(_screenLayers);
+            if (layerViewProvider is null)
+                throw new ArgumentNullException(nameof(layerViewProvider));
+            if (viewsParent is null)
+                throw new ArgumentNullException(nameof(viewsParent));
+            
+            _layerManager = new LayerManager(layerViewProvider);
             _historyStack = new Stack<BaseScreen>();
             _overlayScreens = new List<BaseScreen>();
-
-            var parent = _viewsParent ?? transform;
-            _mainParent = CreateScreenParentObj("MainScreen", parent);
-            _modalParent = CreateScreenParentObj("ModalScreen", parent);
-            _overlayParent = CreateScreenParentObj("OverlayScreens", parent);
+            
+            _mainParent = CreateScreenParentObj("MainScreen", viewsParent);
+            _modalParent = CreateScreenParentObj("ModalScreen", viewsParent);
+            _overlayParent = CreateScreenParentObj("OverlayScreens", viewsParent);
         }
 
         private static RectTransform CreateScreenParentObj(string name, Transform parent)
@@ -171,7 +174,7 @@ namespace Rayleigh.Sklo
             return rectTransform;
         }
 
-        private Transform GetParentObj(DisplayType displayType) => displayType switch
+        private RectTransform GetParentObj(DisplayType displayType) => displayType switch
         {
             DisplayType.Main => _mainParent,
             DisplayType.Modal => _modalParent,
@@ -251,7 +254,7 @@ namespace Rayleigh.Sklo
         protected bool BeginToggleMain([MaybeNull] BaseScreen screen, out BeginToggleResult result)
         {
             if (screen is not null && screen.Displayed)
-                throw new Exception("The screen is already displayed.");
+                throw new InvalidOperationException("The screen is already displayed.");
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
             ThrowIfProcessBegun();
@@ -471,7 +474,7 @@ namespace Rayleigh.Sklo
                 AfterScreenHide?.Invoke(beginProcessResult.Screen, DisplayType.Overlay);
             
             // Destroy the parent container.
-            Destroy(beginProcessResult.Screen!.ParentContainer.gameObject);
+            UnityEngine.Object.Destroy(beginProcessResult.Screen!.ParentContainer.gameObject);
             
             EndProcessInternal(beginProcessResult);
         }
@@ -493,6 +496,16 @@ namespace Rayleigh.Sklo
         {
             if (_screenProcessBegun)
                 throw new InvalidOperationException("Cannot show a screen because another process is already begun.");
+        }
+
+        public void Dispose()
+        {
+            if (_mainParent)
+                Object.Destroy(_mainParent.gameObject);
+            if (_modalParent)
+                Object.Destroy(_modalParent.gameObject);
+            if (_overlayParent)
+                Object.Destroy(_overlayParent.gameObject);
         }
     }
 }

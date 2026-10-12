@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using Rayleigh.Sklo;
+using Rayleigh.Sklo.LayerViews;
+using Rayleigh.Sklo.Screens;
 using Sklo.Examples.Elements;
 using UnityEngine;
 
