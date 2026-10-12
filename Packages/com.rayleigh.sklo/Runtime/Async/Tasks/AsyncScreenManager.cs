@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Pool;
 using Screen = Rayleigh.Sklo.Screens.Screen;
 
-namespace Rayleigh.Sklo.Tasks
+namespace Rayleigh.Sklo.Async.Tasks
 {
     public sealed class AsyncScreenManager : BaseAsyncScreenManager<AsyncScreen>
     {
