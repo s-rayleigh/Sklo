@@ -105,7 +105,7 @@ namespace Rayleigh.Sklo.Async.UniTasks
             GetHideTasks(result, tasks);
             await UniTask.WhenAll(tasks);
 
-            EndShowModal(result);
+            EndHideModal(result);
         }
 
         #endregion Modal
