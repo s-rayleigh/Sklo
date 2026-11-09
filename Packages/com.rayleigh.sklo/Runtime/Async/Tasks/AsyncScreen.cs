@@ -3,15 +3,15 @@ using Rayleigh.Sklo.Screens;
 
 namespace Rayleigh.Sklo.Async.Tasks
 {
-    public abstract class AsyncScreen : BaseScreen<AsyncScreenLayer>
+    public abstract class AsyncScreen : BaseScreen<AsyncScreenLayer>, IAsyncScreen<Task>
     {
-        internal Task NotifyShown()
+        public Task NotifyShown()
         {
             Displayed = true;
             return OnShow();
         }
 
-        internal Task NotifyHidden()
+        public Task NotifyHidden()
         {
             Displayed = false;
             return OnHide();

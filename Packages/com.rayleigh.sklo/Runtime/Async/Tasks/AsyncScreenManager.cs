@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Rayleigh.Sklo.LayerViews.Providers;
 using Rayleigh.Sklo.ScreenManagers;
@@ -10,7 +9,7 @@ using Screen = Rayleigh.Sklo.Screens.Screen;
 
 namespace Rayleigh.Sklo.Async.Tasks
 {
-    public sealed class AsyncScreenManager : BaseAsyncScreenManager<AsyncScreen>
+    public class AsyncScreenManager : BaseAsyncScreenManager<AsyncScreen, Task>
     {
         public AsyncScreenManager(ILayerViewProvider layerViewProvider, RectTransform viewsParent)
             : base(layerViewProvider, viewsParent)
@@ -26,7 +25,7 @@ namespace Rayleigh.Sklo.Async.Tasks
             init?.Invoke(screen);
 
             if (screen is Screen syncScreen)
-                ToggleMain(syncScreen);
+                base.ToggleMain(syncScreen);
             else
                 // TODO: optimize!
                 await ToggleMain((AsyncScreen)(object)screen);
@@ -40,7 +39,7 @@ namespace Rayleigh.Sklo.Async.Tasks
                 return null;
             
             if (baseScreen is Screen syncScreen)
-                ToggleMain(syncScreen);
+                base.ToggleMain(syncScreen);
             else
                 await ToggleMain((AsyncScreen)baseScreen);
             
@@ -59,37 +58,9 @@ namespace Rayleigh.Sklo.Async.Tasks
             if (!BeginToggleMain(screen, out var result))
                 return;
             
-            var tasks = ListPool<Task>.Get();
-
-            try
-            {
-                if (result.ScreenToHide is not null)
-                    tasks.Add(((AsyncScreen)result.ScreenToHide).NotifyHidden());
-                if (result.ScreenToShow is not null)
-                    tasks.Add(((AsyncScreen)result.ScreenToShow).NotifyShown());
-
-                var transitionalLayers = result.GetTransitionalLayers();
-                if (result.LayersToHide is not null)
-                {
-                    foreach (var layer in result.LayersToHide.Except(transitionalLayers))
-                        tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
-                }
-
-                foreach (var layer in transitionalLayers)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyTransition());
-                if (result.LayersToShow is not null)
-                {
-                    foreach (var layer in result.LayersToShow.Except(transitionalLayers))
-                        tasks.Add(((AsyncScreenLayer)layer).NotifyShown());
-                }
-                // TODO: optimize.
-
-                await Task.WhenAll(tasks);
-            }
-            finally
-            {
-                ListPool<Task>.Release(tasks);
-            }
+            using var _ = ListPool<Task>.Get(out var tasks);
+            GetToggleMainTasks(result, tasks);
+            await Task.WhenAll(tasks);
             
             EndToggleMain(result);
         }
@@ -106,25 +77,15 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             if (screen is Screen syncScreen)
             {
-                ShowModal(syncScreen);
+                base.ShowModal(syncScreen);
                 return screen;
             }
 
             var result = BeginShowModal(screen);
-            var tasks = ListPool<Task>.Get();
-
-            try
-            {
-                tasks.Add(((AsyncScreen)result.Screen).NotifyShown());
-                foreach (var layer in result.LayersToProcess)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyShown());
-                await Task.WhenAll(tasks);
-            }
-            finally
-            {
-                ListPool<Task>.Release(tasks);
-            }
-
+            using var _ = ListPool<Task>.Get(out var tasks);
+            GetShowTasks(result, tasks);
+            await Task.WhenAll(tasks);
+            
             EndShowModal(result);
             return screen;
         }
@@ -140,19 +101,9 @@ namespace Rayleigh.Sklo.Async.Tasks
             }
 
             var result = BeginHideModal();
-            var tasks = ListPool<Task>.Get();
-
-            try
-            {
-                tasks.Add(((AsyncScreen)result.Screen).NotifyHidden());
-                foreach (var layer in result.LayersToProcess)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
-                await Task.WhenAll(tasks);
-            }
-            finally
-            {
-                ListPool<Task>.Release(tasks);
-            }
+            using var _ = ListPool<Task>.Get(out var tasks);
+            GetHideTasks(result, tasks);
+            await Task.WhenAll(tasks);
 
             EndShowModal(result);
         }
@@ -169,24 +120,14 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             if (screen is Screen syncScreen)
             {
-                ShowOverlay(syncScreen);
+                base.ShowOverlay(syncScreen);
                 return screen;
             }
 
             var result = BeginShowOverlay(screen);
-            var tasks = ListPool<Task>.Get();
-
-            try
-            {
-                tasks.Add(((AsyncScreen)result.Screen).NotifyShown());
-                foreach (var layer in result.LayersToProcess)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyShown());
-                await Task.WhenAll(tasks);
-            }
-            finally
-            {
-                ListPool<Task>.Release(tasks);
-            }
+            using var _ = ListPool<Task>.Get(out var tasks);
+            GetShowTasks(result, tasks);
+            await Task.WhenAll(tasks);
 
             EndShowOverlay(result);
             return screen;
@@ -201,57 +142,37 @@ namespace Rayleigh.Sklo.Async.Tasks
             }
 
             var result = BeginHideOverlay(screen);
-            var tasks = ListPool<Task>.Get();
-
-            try
-            {
-                tasks.Add(((AsyncScreen)result.Screen).NotifyHidden());
-                foreach (var layer in result.LayersToProcess)
-                    tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
-                await Task.WhenAll(tasks);
-            }
-            finally
-            {
-                ListPool<Task>.Release(tasks);
-            }
+            using var _ = ListPool<Task>.Get(out var tasks);
+            GetHideTasks(result, tasks);
+            await Task.WhenAll(tasks);
 
             EndHideOverlay(result);
         }
 
         public async Task HideAllOverlay()
         {
-            var tasks = ListPool<Task>.Get();
-            var results = ListPool<BeginProcessResult>.Get();
-            try
+            using var _1 = ListPool<Task>.Get(out var tasks);
+            using var _2 = ListPool<BeginProcessResult>.Get(out var results);
+            
+            for (var i = OverlayScreens.Count - 1; i >= 0; i--)
             {
-                for (var i = OverlayScreens.Count - 1; i >= 0; i--)
+                var screen = OverlayScreens[i];
+
+                if (screen is Screen syncScreen)
                 {
-                    var screen = OverlayScreens[i];
-
-                    if (screen is Screen syncScreen)
-                    {
-                        base.HideOverlay(syncScreen);
-                        continue;
-                    }
-
-                    var result = BeginHideOverlay(screen);
-                    tasks.Add(((AsyncScreen)result.Screen).NotifyHidden());
-                    foreach (var layer in result.LayersToProcess)
-                        tasks.Add(((AsyncScreenLayer)layer).NotifyHidden());
-                    results.Add(result);
+                    base.HideOverlay(syncScreen);
+                    continue;
                 }
 
-                await Task.WhenAll(tasks);
+                var result = BeginHideOverlay(screen);
+                GetHideTasks(result, tasks);
+                results.Add(result);
             }
-            finally
-            {
-                ListPool<Task>.Release(tasks);
-            }
+
+            await Task.WhenAll(tasks);
 
             for (var i = 0; i < results.Count; i++)
                 EndHideOverlay(results[i]);
-            
-            ListPool<BeginProcessResult>.Release(results);
         }
         
         #endregion Overlay

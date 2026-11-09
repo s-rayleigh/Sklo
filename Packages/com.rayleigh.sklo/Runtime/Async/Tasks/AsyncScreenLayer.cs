@@ -3,17 +3,17 @@ using Rayleigh.Sklo.Layers;
 
 namespace Rayleigh.Sklo.Async.Tasks
 {
-    public abstract class AsyncScreenLayer : BaseScreenLayer
+    public abstract class AsyncScreenLayer : BaseScreenLayer, IAsyncLayer<Task>
     {
-        internal Task NotifyShown() => OnShow();
+        public Task NotifyShown() => OnShow();
 
         protected virtual Task OnShow() => Task.CompletedTask;
 
-        internal Task NotifyTransition() => OnTransition();
+        public Task NotifyTransition() => OnTransition();
 
         protected virtual Task OnTransition() => Task.CompletedTask;
         
-        internal Task NotifyHidden() => OnHide();
+        public Task NotifyHidden() => OnHide();
         
         protected virtual Task OnHide() => Task.CompletedTask;
     }
