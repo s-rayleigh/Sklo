@@ -19,5 +19,8 @@ namespace Rayleigh.Sklo.Async.UniTasks
         
         protected virtual UniTask OnShow() => UniTask.CompletedTask;
         protected virtual UniTask OnHide() => UniTask.CompletedTask;
+        
+        UniTask IAsyncScreen<UniTask>.NotifyHidden() => NotifyHidden();
+        UniTask IAsyncScreen<UniTask>.NotifyShown() => NotifyShown();
     }
 }
