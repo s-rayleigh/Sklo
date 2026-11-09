@@ -20,6 +20,12 @@ namespace Sklo.Examples.Layers
             View.StartCoroutine(SplashDelay());
         }
 
+        protected override void OnHide()
+        {
+            base.OnHide();
+            View.StopAllCoroutines();
+        }
+
         private IEnumerator SplashDelay()
         {
             var time = ShowDuration;
