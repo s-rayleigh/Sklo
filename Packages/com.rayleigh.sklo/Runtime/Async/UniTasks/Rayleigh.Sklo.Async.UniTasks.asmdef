@@ -1,0 +1,10 @@
+{
+    "name": "Rayleigh.Sklo.Async.UniTasks",
+    "rootNamespace": "Rayleigh.Sklo.Async.UniTasks",
+    "references": ["Rayleigh.Sklo", "UniTask"],
+    "defineConstraints": ["SKLO_UNITASK"],
+    "versionDefines": [
+      { "name": "com.cysharp.unitask", "expression": "", "define": "SKLO_UNITASK" }
+    ],
+    "autoReferenced": true
+}

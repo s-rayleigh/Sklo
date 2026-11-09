@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
 using Rayleigh.Sklo.Screens;
 
-namespace Rayleigh.Sklo.Tasks
+namespace Rayleigh.Sklo.Async.Tasks
 {
-    public abstract class AsyncScreen : BaseScreen<AsyncScreenLayer>
+    public abstract class AsyncScreen : BaseScreen<AsyncScreenLayer>, IAsyncScreen<Task>
     {
         internal Task NotifyShown()
         {
@@ -19,5 +19,8 @@ namespace Rayleigh.Sklo.Tasks
         
         protected virtual Task OnShow() => Task.CompletedTask;
         protected virtual Task OnHide() => Task.CompletedTask;
+        
+        Task IAsyncScreen<Task>.NotifyHidden() => NotifyHidden();
+        Task IAsyncScreen<Task>.NotifyShown() => NotifyShown();
     }
 }
