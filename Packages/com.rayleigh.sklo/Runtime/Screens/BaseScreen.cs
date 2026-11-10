@@ -40,6 +40,13 @@ namespace Rayleigh.Sklo.Screens
         [return: MaybeNull]
         protected T GetLayer<T>() where T : BaseScreenLayer => (T)InternalLayers.GetValueOrDefault(typeof(T));
         
+        protected bool TryGetLayer<T>([NotNullWhen(true)] out T layer) where T : BaseScreenLayer
+        {
+            var result = InternalLayers.TryGetValue(typeof(T), out var value);
+            layer = (T)value;
+            return result;
+        }
+        
         // TODO: implement "equals" interface?
         public bool SameAs([MaybeNull] BaseScreen other) => other is not null && other.GetType() == GetType();
     }
