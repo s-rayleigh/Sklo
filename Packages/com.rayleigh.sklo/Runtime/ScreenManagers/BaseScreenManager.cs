@@ -174,6 +174,34 @@ namespace Rayleigh.Sklo.ScreenManagers
             return rectTransform;
         }
 
+        /// <summary>
+        /// Creates a screen and passes it the arguments it is shown with.
+        /// </summary>
+        protected static T CreateScreen<T, TArgs>(TArgs args) where T : BaseScreen, IScreenWithArgs<TArgs>, new()
+        {
+            var screen = new T();
+
+            if (screen is not IScreenArgsReceiver<TArgs> receiver)
+            {
+                throw new InvalidOperationException(
+                    $"Screen '{typeof(T).Name}' cannot receive arguments. Inherit a screen base class with " +
+                    $"arguments instead of implementing '{nameof(IScreenWithArgs<TArgs>)}' directly.");
+            }
+
+            receiver.SetArgs(args);
+            return screen;
+        }
+
+        private static void ThrowIfArgsMissing([MaybeNull] BaseScreen screen)
+        {
+            if (screen is IScreenArgsReceiver { HasArgs: false })
+            {
+                throw new InvalidOperationException(
+                    $"Screen '{screen.GetType().Name}' requires arguments." +
+                    " Show it with an overload that accepts arguments.");
+            }
+        }
+
         private RectTransform GetParentObj(DisplayType displayType) => displayType switch
         {
             DisplayType.Main => _mainParent,
@@ -257,6 +285,7 @@ namespace Rayleigh.Sklo.ScreenManagers
                 throw new InvalidOperationException("The screen is already displayed.");
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot toggle the main screen while a modal screen is displayed.");
+            ThrowIfArgsMissing(screen);
             ThrowIfProcessBegun();
 
             _screenProcessBegun = true;
@@ -346,6 +375,7 @@ namespace Rayleigh.Sklo.ScreenManagers
                 throw new ArgumentNullException(nameof(screen));
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot show a modal screen while another is being displayed.");
+            ThrowIfArgsMissing(screen);
             ThrowIfProcessBegun();
 
             _screenProcessBegun = true;
@@ -419,6 +449,7 @@ namespace Rayleigh.Sklo.ScreenManagers
                 throw new ArgumentNullException(nameof(screen));
             if (screen.Displayed)
                 throw new InvalidOperationException("Screen is already displayed.");
+            ThrowIfArgsMissing(screen);
             
             _overlayScreens.Add(screen);
             

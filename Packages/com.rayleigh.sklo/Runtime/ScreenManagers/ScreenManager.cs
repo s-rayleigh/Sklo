@@ -15,10 +15,16 @@ namespace Rayleigh.Sklo.ScreenManagers
 
         #region Main
 
-        public T ToggleMain<T>(Action<T> init = null) where T : Screen, new()
+        public T ToggleMain<T>() where T : Screen, new()
         {
             var screen = new T();
-            init?.Invoke(screen);
+            ToggleMain(screen);
+            return screen;
+        }
+
+        public T ToggleMain<T, TArgs>(TArgs args) where T : Screen, IScreenWithArgs<TArgs>, new()
+        {
+            var screen = CreateScreen<T, TArgs>(args);
             ToggleMain(screen);
             return screen;
         }
@@ -45,10 +51,16 @@ namespace Rayleigh.Sklo.ScreenManagers
 
         #region Modal
 
-        public T ShowModal<T>(Action<T> init = null) where T : Screen, new()
+        public T ShowModal<T>() where T : Screen, new()
         {
             var screen = new T();
-            init?.Invoke(screen);
+            ShowModal(screen);
+            return screen;
+        }
+
+        public T ShowModal<T, TArgs>(TArgs args) where T : Screen, IScreenWithArgs<TArgs>, new()
+        {
+            var screen = CreateScreen<T, TArgs>(args);
             ShowModal(screen);
             return screen;
         }
@@ -59,10 +71,16 @@ namespace Rayleigh.Sklo.ScreenManagers
 
         #region Overlay
         
-        public T ShowOverlay<T>(Action<T> init = null) where T : Screen, new()
+        public T ShowOverlay<T>() where T : Screen, new()
         {
             var screen = new T();
-            init?.Invoke(screen);
+            ShowOverlay(screen);
+            return screen;
+        }
+
+        public T ShowOverlay<T, TArgs>(TArgs args) where T : Screen, IScreenWithArgs<TArgs>, new()
+        {
+            var screen = CreateScreen<T, TArgs>(args);
             ShowOverlay(screen);
             return screen;
         }
