@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Rayleigh.Sklo.LayerViews.Providers;
 using Rayleigh.Sklo.ScreenManagers;
@@ -18,7 +19,8 @@ namespace Rayleigh.Sklo.Async.UniTasks
         
         #region Main
 
-        public async UniTask<T> ToggleMain<T>(Action<T> init = null) where T : BaseScreen, new()
+        public async UniTask<T> ToggleMain<T>(Action<T> init = null, CancellationToken cancellationToken = default)
+            where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
@@ -28,12 +30,12 @@ namespace Rayleigh.Sklo.Async.UniTasks
                 base.ToggleMain(syncScreen);
             else
                 // TODO: optimize!
-                await ToggleMain((AsyncScreen)(object)screen);
+                await ToggleMain((AsyncScreen)(object)screen, cancellationToken);
             
             return screen;
         }
 
-        public async UniTask<BaseScreen> ToggleBack()
+        public async UniTask<BaseScreen> ToggleBack(CancellationToken cancellationToken = default)
         {
             if (!TryPeekInHistory(out var baseScreen))
                 return null;
@@ -41,35 +43,42 @@ namespace Rayleigh.Sklo.Async.UniTasks
             if (baseScreen is Screen syncScreen)
                 base.ToggleMain(syncScreen);
             else
-                await ToggleMain((AsyncScreen)baseScreen);
+                await ToggleMain((AsyncScreen)baseScreen, cancellationToken);
             
             return baseScreen;
         }
 
-        public UniTask HideMain()
+        public UniTask HideMain(CancellationToken cancellationToken = default)
         {
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot hide the main screen while a modal screen is displayed.");
-            return MainDisplayed ? ToggleMain(null) : UniTask.CompletedTask;
+            return MainDisplayed ? ToggleMain(null, cancellationToken) : UniTask.CompletedTask;
         }
 
-        private async UniTask ToggleMain(AsyncScreen screen)
+        private async UniTask ToggleMain(AsyncScreen screen, CancellationToken cancellationToken)
         {
             if (!BeginToggleMain(screen, out var result))
                 return;
             
             using var _ = ListPool<UniTask>.Get(out var tasks);
-            GetToggleMainTasks(result, tasks);
-            await UniTask.WhenAll(tasks);
-            
-            EndToggleMain(result);
+            GetToggleMainTasks(result, tasks, cancellationToken);
+
+            try
+            {
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                EndToggleMain(result);
+            }
         }
         
         #endregion Main
         
         #region Modal
 
-        public async UniTask<T> ShowModal<T>(Action<T> init = null) where T : BaseScreen, new()
+        public async UniTask<T> ShowModal<T>(Action<T> init = null, CancellationToken cancellationToken = default)
+            where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
@@ -83,14 +92,21 @@ namespace Rayleigh.Sklo.Async.UniTasks
 
             var result = BeginShowModal(screen);
             using var _ = ListPool<UniTask>.Get(out var tasks);
-            GetShowTasks(result, tasks);
-            await UniTask.WhenAll(tasks);
-            
-            EndShowModal(result);
+            GetShowTasks(result, tasks, cancellationToken);
+
+            try
+            {
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                EndShowModal(result);
+            }
+
             return screen;
         }
 
-        public new async UniTask HideModal()
+        public new async UniTask HideModal(CancellationToken cancellationToken = default)
         {
             var screen = ModalScreen;
 
@@ -102,17 +118,24 @@ namespace Rayleigh.Sklo.Async.UniTasks
 
             var result = BeginHideModal();
             using var _ = ListPool<UniTask>.Get(out var tasks);
-            GetHideTasks(result, tasks);
-            await UniTask.WhenAll(tasks);
+            GetHideTasks(result, tasks, cancellationToken);
 
-            EndHideModal(result);
+            try
+            {
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                EndHideModal(result);
+            }
         }
 
         #endregion Modal
         
         #region Overlay
 
-        public async UniTask<T> ShowOverlay<T>(Action<T> init = null) where T : BaseScreen, new()
+        public async UniTask<T> ShowOverlay<T>(Action<T> init = null, CancellationToken cancellationToken = default)
+            where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
@@ -126,14 +149,21 @@ namespace Rayleigh.Sklo.Async.UniTasks
 
             var result = BeginShowOverlay(screen);
             using var _ = ListPool<UniTask>.Get(out var tasks);
-            GetShowTasks(result, tasks);
-            await UniTask.WhenAll(tasks);
-
-            EndShowOverlay(result);
+            GetShowTasks(result, tasks, cancellationToken);
+            
+            try
+            {
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                EndShowOverlay(result);
+            }
+            
             return screen;
         }
 
-        public new async UniTask HideOverlay(BaseScreen screen)
+        public new async UniTask HideOverlay(BaseScreen screen, CancellationToken cancellationToken = default)
         {
             if (screen is Screen syncScreen)
             {
@@ -143,13 +173,19 @@ namespace Rayleigh.Sklo.Async.UniTasks
 
             var result = BeginHideOverlay(screen);
             using var _ = ListPool<UniTask>.Get(out var tasks);
-            GetHideTasks(result, tasks);
-            await UniTask.WhenAll(tasks);
+            GetHideTasks(result, tasks, cancellationToken);
 
-            EndHideOverlay(result);
+            try
+            {
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                EndHideOverlay(result);
+            }
         }
 
-        public async UniTask HideAllOverlay()
+        public async UniTask HideAllOverlay(CancellationToken cancellationToken = default)
         {
             using var _1 = ListPool<UniTask>.Get(out var tasks);
             using var _2 = ListPool<BeginProcessResult>.Get(out var results);
@@ -165,14 +201,19 @@ namespace Rayleigh.Sklo.Async.UniTasks
                 }
 
                 var result = BeginHideOverlay(screen);
-                GetHideTasks(result, tasks);
+                GetHideTasks(result, tasks, cancellationToken);
                 results.Add(result);
             }
 
-            await UniTask.WhenAll(tasks);
-
-            for (var i = 0; i < results.Count; i++)
-                EndHideOverlay(results[i]);
+            try
+            {
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                for (var i = 0; i < results.Count; i++)
+                    EndHideOverlay(results[i]);
+            }
         }
         
         #endregion Overlay

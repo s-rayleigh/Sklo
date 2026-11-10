@@ -1,8 +1,10 @@
+using System.Threading;
+
 namespace Rayleigh.Sklo.Async
 {
     internal interface IAsyncScreen<TTask>
     {
-        TTask NotifyShown();
-        TTask NotifyHidden();
+        TTask NotifyShown(CancellationToken cancellationToken);
+        TTask NotifyHidden(CancellationToken cancellationToken);
     }
 }

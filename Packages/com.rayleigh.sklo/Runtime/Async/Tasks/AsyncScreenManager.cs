@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Rayleigh.Sklo.LayerViews.Providers;
 using Rayleigh.Sklo.ScreenManagers;
@@ -18,7 +19,8 @@ namespace Rayleigh.Sklo.Async.Tasks
         
         #region Main
 
-        public async Task<T> ToggleMain<T>(Action<T> init = null) where T : BaseScreen, new()
+        public async Task<T> ToggleMain<T>(Action<T> init = null, CancellationToken cancellationToken = default)
+            where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
@@ -28,12 +30,12 @@ namespace Rayleigh.Sklo.Async.Tasks
                 base.ToggleMain(syncScreen);
             else
                 // TODO: optimize!
-                await ToggleMain((AsyncScreen)(object)screen);
+                await ToggleMain((AsyncScreen)(object)screen, cancellationToken);
             
             return screen;
         }
 
-        public async Task<BaseScreen> ToggleBack()
+        public async Task<BaseScreen> ToggleBack(CancellationToken cancellationToken = default)
         {
             if (!TryPeekInHistory(out var baseScreen))
                 return null;
@@ -41,35 +43,42 @@ namespace Rayleigh.Sklo.Async.Tasks
             if (baseScreen is Screen syncScreen)
                 base.ToggleMain(syncScreen);
             else
-                await ToggleMain((AsyncScreen)baseScreen);
+                await ToggleMain((AsyncScreen)baseScreen, cancellationToken);
             
             return baseScreen;
         }
 
-        public Task HideMain()
+        public Task HideMain(CancellationToken cancellationToken = default)
         {
             if (ModalDisplayed)
                 throw new InvalidOperationException("Cannot hide the main screen while a modal screen is displayed.");
-            return MainDisplayed ? ToggleMain(null) : Task.CompletedTask;
+            return MainDisplayed ? ToggleMain(null, cancellationToken) : Task.CompletedTask;
         }
 
-        private async Task ToggleMain(AsyncScreen screen)
+        private async Task ToggleMain(AsyncScreen screen, CancellationToken cancellationToken)
         {
             if (!BeginToggleMain(screen, out var result))
                 return;
             
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetToggleMainTasks(result, tasks);
-            await Task.WhenAll(tasks);
+            GetToggleMainTasks(result, tasks, cancellationToken);
             
-            EndToggleMain(result);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                EndToggleMain(result);
+            }
         }
         
         #endregion Main
         
         #region Modal
 
-        public async Task<T> ShowModal<T>(Action<T> init = null) where T : BaseScreen, new()
+        public async Task<T> ShowModal<T>(Action<T> init = null, CancellationToken cancellationToken = default)
+            where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
@@ -83,14 +92,21 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginShowModal(screen);
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetShowTasks(result, tasks);
-            await Task.WhenAll(tasks);
-            
-            EndShowModal(result);
+            GetShowTasks(result, tasks, cancellationToken);
+
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                EndShowModal(result);
+            }
+
             return screen;
         }
 
-        public new async Task HideModal()
+        public new async Task HideModal(CancellationToken cancellationToken = default)
         {
             var screen = ModalScreen;
 
@@ -102,17 +118,24 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginHideModal();
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetHideTasks(result, tasks);
-            await Task.WhenAll(tasks);
+            GetHideTasks(result, tasks, cancellationToken);
 
-            EndHideModal(result);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                EndHideModal(result);
+            }
         }
 
         #endregion Modal
         
         #region Overlay
 
-        public async Task<T> ShowOverlay<T>(Action<T> init = null) where T : BaseScreen, new()
+        public async Task<T> ShowOverlay<T>(Action<T> init = null, CancellationToken cancellationToken = default)
+            where T : BaseScreen, new()
         {
             ThrowIfScreenNotSupported<T>();
             var screen = new T();
@@ -126,14 +149,21 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginShowOverlay(screen);
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetShowTasks(result, tasks);
-            await Task.WhenAll(tasks);
+            GetShowTasks(result, tasks, cancellationToken);
 
-            EndShowOverlay(result);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                EndShowOverlay(result);
+            }
+
             return screen;
         }
 
-        public new async Task HideOverlay(BaseScreen screen)
+        public new async Task HideOverlay(BaseScreen screen, CancellationToken cancellationToken = default)
         {
             if (screen is Screen syncScreen)
             {
@@ -143,13 +173,19 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginHideOverlay(screen);
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetHideTasks(result, tasks);
-            await Task.WhenAll(tasks);
+            GetHideTasks(result, tasks, cancellationToken);
 
-            EndHideOverlay(result);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                EndHideOverlay(result);
+            }
         }
 
-        public async Task HideAllOverlay()
+        public async Task HideAllOverlay(CancellationToken cancellationToken = default)
         {
             using var _1 = ListPool<Task>.Get(out var tasks);
             using var _2 = ListPool<BeginProcessResult>.Get(out var results);
@@ -165,14 +201,19 @@ namespace Rayleigh.Sklo.Async.Tasks
                 }
 
                 var result = BeginHideOverlay(screen);
-                GetHideTasks(result, tasks);
+                GetHideTasks(result, tasks, cancellationToken);
                 results.Add(result);
             }
 
-            await Task.WhenAll(tasks);
-
-            for (var i = 0; i < results.Count; i++)
-                EndHideOverlay(results[i]);
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                for (var i = 0; i < results.Count; i++)
+                    EndHideOverlay(results[i]);
+            }
         }
         
         #endregion Overlay
