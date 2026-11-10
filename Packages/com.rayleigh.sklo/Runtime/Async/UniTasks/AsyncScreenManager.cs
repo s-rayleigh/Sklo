@@ -104,7 +104,7 @@ namespace Rayleigh.Sklo.Async.UniTasks
             return screen;
         }
 
-        public new async UniTask HideModal(CancellationToken cancellationToken = default)
+        public async UniTask HideModal(CancellationToken cancellationToken = default)
         {
             var screen = ModalScreen;
 
@@ -159,7 +159,7 @@ namespace Rayleigh.Sklo.Async.UniTasks
             return screen;
         }
 
-        public new async UniTask HideOverlay(BaseScreen screen, CancellationToken cancellationToken = default)
+        public async UniTask HideOverlay(BaseScreen screen, CancellationToken cancellationToken = default)
         {
             if (screen is Screen syncScreen)
             {

@@ -104,7 +104,7 @@ namespace Rayleigh.Sklo.Async.Tasks
             return screen;
         }
 
-        public new async Task HideModal(CancellationToken cancellationToken = default)
+        public async Task HideModal(CancellationToken cancellationToken = default)
         {
             var screen = ModalScreen;
 
@@ -159,7 +159,7 @@ namespace Rayleigh.Sklo.Async.Tasks
             return screen;
         }
 
-        public new async Task HideOverlay(BaseScreen screen, CancellationToken cancellationToken = default)
+        public async Task HideOverlay(BaseScreen screen, CancellationToken cancellationToken = default)
         {
             if (screen is Screen syncScreen)
             {
