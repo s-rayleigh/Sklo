@@ -31,8 +31,8 @@ namespace Rayleigh.Sklo.Screens
         {
         }
 
-        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers, RectTransform parent,
-            ulong opId)
+        internal virtual void Compose(LayerManager layerManager, HashSet<BaseScreenLayer> layers,
+            List<PendingLayerArgs> pendingLayerArgs, RectTransform parent, ulong opId)
         {
             ParentContainer = parent;
         }

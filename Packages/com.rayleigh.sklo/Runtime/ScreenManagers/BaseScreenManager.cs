@@ -219,7 +219,8 @@ namespace Rayleigh.Sklo.ScreenManagers
             if (displayType is DisplayType.Overlay)
                 parentObj = CreateScreenParentObj(screen.GetType().Name, parentObj);
             
-            screen.Compose(_layerManager, layersToShow, parentObj, opId);
+            using var _ = ListPool<PendingLayerArgs>.Get(out var pendingLayerArgs);
+            screen.Compose(_layerManager, layersToShow, pendingLayerArgs, parentObj, opId);
 
             foreach (var layer in layersToShow)
             {
@@ -232,6 +233,10 @@ namespace Rayleigh.Sklo.ScreenManagers
                 foreach (var layer in layersToShow)
                     BeforeLayerShow(layer, displayType);
             }
+            
+            // Layers are fully initialized at this point, so they can receive their arguments.
+            for (var i = 0; i < pendingLayerArgs.Count; i++)
+                pendingLayerArgs[i].Apply();
             
             BeforeScreenShow?.Invoke(screen, displayType);
         }
