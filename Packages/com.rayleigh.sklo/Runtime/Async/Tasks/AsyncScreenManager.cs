@@ -61,10 +61,9 @@ namespace Rayleigh.Sklo.Async.Tasks
                 return;
             
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetToggleMainTasks(result, tasks, cancellationToken);
-            
             try
             {
+                GetToggleMainTasks(result, tasks, cancellationToken);
                 await Task.WhenAll(tasks);
             }
             finally
@@ -92,10 +91,9 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginShowModal(screen);
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetShowTasks(result, tasks, cancellationToken);
-
             try
             {
+                GetShowTasks(result, tasks, cancellationToken);
                 await Task.WhenAll(tasks);
             }
             finally
@@ -118,10 +116,9 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginHideModal();
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetHideTasks(result, tasks, cancellationToken);
-
             try
             {
+                GetHideTasks(result, tasks, cancellationToken);
                 await Task.WhenAll(tasks);
             }
             finally
@@ -149,10 +146,9 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginShowOverlay(screen);
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetShowTasks(result, tasks, cancellationToken);
-
             try
             {
+                GetShowTasks(result, tasks, cancellationToken);
                 await Task.WhenAll(tasks);
             }
             finally
@@ -173,10 +169,9 @@ namespace Rayleigh.Sklo.Async.Tasks
 
             var result = BeginHideOverlay(screen);
             using var _ = ListPool<Task>.Get(out var tasks);
-            GetHideTasks(result, tasks, cancellationToken);
-
             try
             {
+                GetHideTasks(result, tasks, cancellationToken);
                 await Task.WhenAll(tasks);
             }
             finally
@@ -190,23 +185,24 @@ namespace Rayleigh.Sklo.Async.Tasks
             using var _1 = ListPool<Task>.Get(out var tasks);
             using var _2 = ListPool<BeginProcessResult>.Get(out var results);
             
-            for (var i = OverlayScreens.Count - 1; i >= 0; i--)
-            {
-                var screen = OverlayScreens[i];
-
-                if (screen is Screen syncScreen)
-                {
-                    base.HideOverlay(syncScreen);
-                    continue;
-                }
-
-                var result = BeginHideOverlay(screen);
-                GetHideTasks(result, tasks, cancellationToken);
-                results.Add(result);
-            }
-
             try
             {
+                for (var i = OverlayScreens.Count - 1; i >= 0; i--)
+                {
+                    var screen = OverlayScreens[i];
+
+                    if (screen is Screen syncScreen)
+                    {
+                        base.HideOverlay(syncScreen);
+                        continue;
+                    }
+
+                    var result = BeginHideOverlay(screen);
+                    // Record the result before invoking hooks, so it gets ended even if a hook throws synchronously.
+                    results.Add(result);
+                    GetHideTasks(result, tasks, cancellationToken);
+                }
+
                 await Task.WhenAll(tasks);
             }
             finally
