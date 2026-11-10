@@ -6,13 +6,13 @@ namespace Rayleigh.Sklo.Async.UniTasks
 {
     public abstract class AsyncScreen : BaseScreen<AsyncScreenLayer>, IAsyncScreen<UniTask>
     {
-        public UniTask NotifyShown(CancellationToken cancellationToken)
+        internal UniTask NotifyShown(CancellationToken cancellationToken)
         {
             Displayed = true;
             return OnShow(cancellationToken);
         }
 
-        public UniTask NotifyHidden(CancellationToken cancellationToken)
+        internal UniTask NotifyHidden(CancellationToken cancellationToken)
         {
             Displayed = false;
             return OnHide(cancellationToken);

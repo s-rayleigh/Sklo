@@ -6,7 +6,7 @@ namespace Rayleigh.Sklo.Async.UniTasks
 {
     public abstract class AsyncScreenLayer : BaseScreenLayer, IAsyncLayer<UniTask>
     {
-        public UniTask NotifyShown(CancellationToken cancellationToken) => OnShow(cancellationToken);
+        internal UniTask NotifyShown(CancellationToken cancellationToken) => OnShow(cancellationToken);
         UniTask IAsyncLayer<UniTask>.NotifyShown(CancellationToken cancellationToken) => NotifyShown(cancellationToken);
 
         /// <summary>
@@ -26,8 +26,7 @@ namespace Rayleigh.Sklo.Async.UniTasks
         /// </param>
         protected virtual UniTask OnShow(CancellationToken cancellationToken) => UniTask.CompletedTask;
 
-        public UniTask NotifyTransition(CancellationToken cancellationToken) => OnTransition(cancellationToken);
-
+        internal UniTask NotifyTransition(CancellationToken cancellationToken) => OnTransition(cancellationToken);
         UniTask IAsyncLayer<UniTask>.NotifyTransition(CancellationToken cancellationToken) =>
             NotifyTransition(cancellationToken);
 
@@ -48,8 +47,7 @@ namespace Rayleigh.Sklo.Async.UniTasks
         /// </param>
         protected virtual UniTask OnTransition(CancellationToken cancellationToken) => UniTask.CompletedTask;
         
-        public UniTask NotifyHidden(CancellationToken cancellationToken) => OnHide(cancellationToken);
-
+        internal UniTask NotifyHidden(CancellationToken cancellationToken) => OnHide(cancellationToken);
         UniTask IAsyncLayer<UniTask>.NotifyHidden(CancellationToken cancellationToken) =>
             NotifyHidden(cancellationToken);
 
