@@ -10,6 +10,7 @@ namespace Sklo.Examples.Layers
         public ScreenManager ScreenManager { get; set; }
 
         public void OpenSettingsScreen() => ScreenManager.ToggleMain<SettingsScreen>();
+        public void OpenPopupMessagesScreen() => ScreenManager.ToggleMain<PopupMessagesScreen>();
         public void ShowQuitConfirmationScreen() => ScreenManager.ShowModal<QuitConfirmationScreen>();
     }
 }
