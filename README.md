@@ -25,13 +25,37 @@ Sklo takes over that part. You describe what each screen consists of, and the fr
 
 ## Installation
 
-Requires Unity 2022.3 or newer. Add the package via *Package Manager → Add package from git URL*:
+Requires Unity 2022.3 or newer.
+
+### From a tarball
+
+Each [release](https://github.com/s-rayleigh/Sklo/releases) has the package attached as a `.tgz` file, signed with Unity's package signing (Unity 6.3 and newer show the signature in the Package Manager).
+
+1. Download `com.rayleigh.sklo-<version>.tgz` from the release you need.
+2. Put it inside your project, for example in a `LocalPackages` folder next to `Assets`, so it can be committed and is available to everyone working on the project.
+3. In Unity, open *Package Manager → + → Install package from tarball…* and select the file.
+
+Unity references the tarball by its path. You can also add it to `Packages/manifest.json` yourself (the path is relative to the `Packages` folder):
+
+```json
+"com.rayleigh.sklo": "file:../LocalPackages/com.rayleigh.sklo-0.4.0.tgz"
+```
+
+To update, download the newer tarball and point the reference at it.
+
+### From a git URL
+
+Open *Package Manager → + → Install package from git URL…* and enter:
 
 ```
-https://github.com/s-rayleigh/Sklo.git?path=Packages/com.rayleigh.sklo
+https://github.com/s-rayleigh/Sklo.git?path=Packages/com.rayleigh.sklo#v0.4.0
 ```
 
-The UniTask variant becomes available automatically when the `com.cysharp.unitask` package is installed.
+The part after `#` is the release tag. Without it, the package follows the `main` branch, which may contain unreleased changes. To update, change the tag in `Packages/manifest.json`.
+
+### UniTask support
+
+The UniTask variant of the async API becomes available automatically when the [`com.cysharp.unitask`](https://github.com/Cysharp/UniTask) package is installed.
 
 ## Main components
 
