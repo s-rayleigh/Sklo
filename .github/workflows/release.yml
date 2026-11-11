@@ -1,0 +1,105 @@
+name: Sign and release
+
+# Runs when a version tag (e.g. v0.4.0) is pushed: signs the package with the
+# Unity UPM CLI and creates a GitHub Release with the signed tarball attached.
+# OpenUPM (trackingMode: githubRelease) publishes that tarball as is.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Sign and release the package
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_DIR: Packages/com.rayleigh.sklo
+      UPM_SERVICE_ACCOUNT_KEY_ID: ${{ secrets.UPM_SERVICE_ACCOUNT_KEY_ID }}
+      UPM_SERVICE_ACCOUNT_KEY_SECRET: ${{ secrets.UPM_SERVICE_ACCOUNT_KEY_SECRET }}
+      UPM_ORG_ID: ${{ secrets.UPM_ORG_ID }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check tag matches package.json version
+        run: |
+          version="$(jq -r .version "$PACKAGE_DIR/package.json")"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Check license copies are identical
+        run: |
+          if ! cmp -s LICENSE.md "$PACKAGE_DIR/LICENSE.md"; then
+            echo "::error::LICENSE.md and $PACKAGE_DIR/LICENSE.md differ"
+            exit 1
+          fi
+
+      - name: Extract release notes from the changelog
+        run: |
+          notes="$RUNNER_TEMP/notes.md"
+          # Everything between "## [<version>]" and the next "## [" heading
+          # (or the link references at the end of the file).
+          awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 { found = 1; next }
+            found && (/^## \[/ || /^\[[^]]+\]: /) { exit }
+            found { print }
+          ' "$PACKAGE_DIR/CHANGELOG.md" > "$notes"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error::No changelog section for version $VERSION in $PACKAGE_DIR/CHANGELOG.md"
+            exit 1
+          fi
+          echo "NOTES_FILE=$notes" >> "$GITHUB_ENV"
+
+      - name: Install Unity UPM CLI
+        run: |
+          curl -fsSL https://cdn.packages.unity.com/upm-cli/install.sh -o "$RUNNER_TEMP/install-upm.sh"
+          bash "$RUNNER_TEMP/install-upm.sh"
+          echo "$HOME/.upm/bin" >> "$GITHUB_PATH"
+
+      - name: Pack and sign
+        run: |
+          upm --version
+          dist="$RUNNER_TEMP/dist"
+          mkdir -p "$dist"
+          upm pack "$PACKAGE_DIR" --organization-id "$UPM_ORG_ID" --destination "$dist"
+
+          shopt -s nullglob
+          archives=("$dist"/*.tgz "$dist"/*.tar.gz)
+          if [ "${#archives[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one package archive, found ${#archives[@]}"
+            exit 1
+          fi
+          archive="${archives[0]}"
+
+          contents="$(tar -tzf "$archive")"
+          for file in package/package.json package/.attestation.p7m; do
+            if ! grep -qx "$file" <<< "$contents"; then
+              echo "::error::$file is missing from $(basename "$archive")"
+              exit 1
+            fi
+          done
+
+          tar -xOzf "$archive" package/package.json | jq '{name, version}'
+          echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          # Versions like 0.4.0-preview.1 are marked as pre-releases.
+          if [[ "$VERSION" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" \
+            --title "Sklo $GITHUB_REF_NAME" \
+            --notes-file "$NOTES_FILE" \
+            --verify-tag \
+            "${flags[@]}"
