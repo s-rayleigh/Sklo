@@ -5,6 +5,8 @@
   "description": "A lightweight UI framework for Unity whose main purpose is to simplify the composition of screens and the transitions between them.",
   "unity": "2022.3",
   "type": "library",
+  "license": "MIT",
+  "changelogUrl": "https://github.com/s-rayleigh/Sklo/blob/main/Packages/com.rayleigh.sklo/CHANGELOG.md",
   "keywords": [
     "ui",
     "framework",

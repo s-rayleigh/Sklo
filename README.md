@@ -95,6 +95,10 @@ More examples are in [Assets/Scripts/Examples](Assets/Scripts/Examples).
 
 "Sklo" comes from the Ukrainian word "скло", meaning "glass": the material screens are made of, and one that can be stacked in sheets just like layers in the framework.
 
+## Changelog
+
+See [CHANGELOG.md](Packages/com.rayleigh.sklo/CHANGELOG.md).
+
 ## License
 
 Distributed under the [MIT License](LICENSE.md).
