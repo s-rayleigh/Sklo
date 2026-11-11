@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-11
+
 ### Added
 
 - Typed arguments for screens: `Screen<TArgs>` / `AsyncScreen<TArgs>` and screen manager overloads that accept arguments. A screen keeps its arguments when shown again from the history.
@@ -81,7 +83,8 @@ First tagged release.
 - `ToggleBack` behaviour.
 - A leak in the async screen manager.
 
-[Unreleased]: https://github.com/s-rayleigh/Sklo/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/s-rayleigh/Sklo/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/s-rayleigh/Sklo/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/s-rayleigh/Sklo/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/s-rayleigh/Sklo/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/s-rayleigh/Sklo/releases/tag/v0.2.0
